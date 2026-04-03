@@ -1,0 +1,36 @@
+.footer {
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+  padding: 40px;
+}
+
+.footer-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-logo h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  letter-spacing: 4px;
+  margin-bottom: 8px;
+}
+
+.footer-logo p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.footer-bottom {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.footer-bottom p {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+}

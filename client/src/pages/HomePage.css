@@ -1,0 +1,27 @@
+.home-page {
+  padding-top: 40px;
+}
+
+.page-header {
+  margin-bottom: 10px;
+}
+
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 6px;
+  margin-bottom: 8px;
+}
+
+.page-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 1.5rem;
+  }
+}

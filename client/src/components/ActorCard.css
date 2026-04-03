@@ -1,0 +1,95 @@
+.actor-card {
+  display: block;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--bg-card);
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+}
+
+.actor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.actor-image-wrapper {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+}
+
+.actor-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+
+.actor-card:hover .actor-image {
+  transform: scale(1.05);
+}
+
+.actor-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 20px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.actor-card:hover .actor-overlay {
+  opacity: 1;
+}
+
+.view-profile {
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.actor-info {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.actor-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.actor-tag {
+  font-size: 0.65rem;
+  letter-spacing: 2px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.tag-asian {
+  background-color: rgba(200, 169, 110, 0.15);
+  color: var(--accent);
+}
+
+.tag-european {
+  background-color: rgba(110, 160, 200, 0.15);
+  color: #6ea0c8;
+}
+
+@media (max-width: 768px) {
+  .actor-info {
+    padding: 12px;
+  }
+
+  .actor-name {
+    font-size: 0.9rem;
+  }
+}
