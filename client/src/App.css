@@ -2,6 +2,10 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background:
+    radial-gradient(800px 380px at 20% -10%, rgba(200, 169, 110, 0.12), transparent 55%),
+    radial-gradient(700px 420px at 95% 0%, rgba(120, 120, 120, 0.12), transparent 55%),
+    var(--bg-primary);
 }
 
 .main-content {
