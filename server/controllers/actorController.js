@@ -1,4 +1,6 @@
 const Actor = require('../models/Actor');
+const cloudinary = require('../config/cloudinary');
+const { extractPublicIdFromUrl } = require('../utils/cloudinary');
 
 // @desc    Get all actors (with pagination + filter by tags)
 // @route   GET /api/actors?tags=asian&page=1&limit=12
@@ -47,8 +49,8 @@ const getActor = async (req, res) => {
 // @route   POST /api/actors
 const createActor = async (req, res) => {
   try {
-    const { name, imageUrl, profileLink, tags } = req.body;
-    const actor = await Actor.create({ name, imageUrl, profileLink, tags });
+    const { name, imageUrl, imagePublicId, profileLink, tags } = req.body;
+    const actor = await Actor.create({ name, imageUrl, imagePublicId, profileLink, tags });
     res.status(201).json({ success: true, data: actor });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -76,10 +78,25 @@ const updateActor = async (req, res) => {
 // @route   DELETE /api/actors/:id
 const deleteActor = async (req, res) => {
   try {
-    const actor = await Actor.findByIdAndDelete(req.params.id);
+    const actor = await Actor.findById(req.params.id);
     if (!actor) {
       return res.status(404).json({ success: false, message: 'Actor not found' });
     }
+
+    const publicId = actor.imagePublicId || extractPublicIdFromUrl(actor.imageUrl);
+    if (publicId) {
+      try {
+        await cloudinary.uploader.destroy(publicId, { resource_type: 'image' });
+      } catch (error) {
+        return res.status(500).json({
+          success: false,
+          message: `Failed to delete image on Cloudinary: ${error.message}`,
+        });
+      }
+    }
+
+    await actor.deleteOne();
+
     res.json({ success: true, message: 'Actor deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

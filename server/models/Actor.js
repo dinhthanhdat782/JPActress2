@@ -10,6 +10,10 @@ const actorSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Image URL is required'],
     },
+    imagePublicId: {
+      type: String,
+      default: null,
+    },
     profileLink: {
       type: String,
       required: [true, 'Profile link is required'],
