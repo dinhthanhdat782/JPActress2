@@ -1,76 +1,123 @@
-import { useState, useEffect } from 'react'
-import SearchBar from '../components/SearchBar'
-import FilterTabs from '../components/FilterTabs'
-import ActorGrid from '../components/ActorGrid'
-import Pagination from '../components/Pagination'
-import { getActors } from '../services/api'
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { getActors, getRandomActor } from '../services/api'
 import './HomePage.css'
 
+function SectionRow({ title, actors, onPrev, onNext, expandTo }) {
+  return (
+    <section className="home-section">
+      <div className="home-section-head">
+        <h3>{title}</h3>
+        <Link to={expandTo}>expand</Link>
+      </div>
+      <div className="home-row-shell">
+        <button className="arrow-btn" onClick={onPrev} aria-label={`Previous ${title}`}>
+          &lt;
+        </button>
+        <div className="row-cards">
+          {actors.map((actor) => (
+            <a
+              key={actor._id}
+              href={actor.profileLink}
+              className="wire-card"
+              target={actor.profileLink?.startsWith('http') ? '_blank' : '_self'}
+              rel="noreferrer"
+            >
+              <img src={actor.imageUrl} alt={actor.name} />
+            </a>
+          ))}
+        </div>
+        <button className="arrow-btn" onClick={onNext} aria-label={`Next ${title}`}>
+          &gt;
+        </button>
+      </div>
+    </section>
+  )
+}
+
 function HomePage() {
-  const [actors, setActors] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [activeFilter, setActiveFilter] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [asianActors, setAsianActors] = useState([])
+  const [europeanActors, setEuropeanActors] = useState([])
+  const [asianIndex, setAsianIndex] = useState(0)
+  const [euroIndex, setEuroIndex] = useState(0)
 
-  const fetchActors = async () => {
-    setLoading(true)
-    try {
-      const data = await getActors(currentPage, 12, activeFilter)
-      let filteredActors = data.data
+  const [selectedTag, setSelectedTag] = useState('')
+  const [randomActor, setRandomActor] = useState(null)
+  const [loadingRandom, setLoadingRandom] = useState(false)
 
-      // Client-side search filter
-      if (searchQuery) {
-        filteredActors = filteredActors.filter((actor) =>
-          actor.name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+  useEffect(() => {
+    const loadHomeData = async () => {
+      try {
+        const [asianRes, euroRes] = await Promise.all([
+          getActors(1, 30, 'asian'),
+          getActors(1, 30, 'european'),
+        ])
+        setAsianActors(asianRes.data || [])
+        setEuropeanActors(euroRes.data || [])
+      } catch (error) {
+        console.error('Error loading homepage data:', error)
       }
-
-      setActors(filteredActors)
-      setTotalPages(data.totalPages)
-    } catch (error) {
-      console.error('Error fetching actors:', error)
     }
-    setLoading(false)
-  }
+    loadHomeData()
+  }, [])
 
-  useEffect(() => {
-    fetchActors()
-  }, [currentPage, activeFilter])
+  const asianVisible = useMemo(
+    () => asianActors.slice(asianIndex, asianIndex + 6),
+    [asianActors, asianIndex]
+  )
+  const euroVisible = useMemo(
+    () => europeanActors.slice(euroIndex, euroIndex + 6),
+    [europeanActors, euroIndex]
+  )
 
-  useEffect(() => {
-    // Re-filter when search changes
-    fetchActors()
-  }, [searchQuery])
+  const moveLeft = (setter) => setter((prev) => Math.max(0, prev - 1))
+  const moveRight = (actors, setter) =>
+    setter((prev) => Math.min(Math.max(actors.length - 6, 0), prev + 1))
 
-  const handleFilterChange = (filter) => {
-    setActiveFilter(filter)
-    setCurrentPage(1)
-  }
-
-  const handleSearch = (query) => {
-    setSearchQuery(query)
-    setCurrentPage(1)
+  const handleRandom = async () => {
+    setLoadingRandom(true)
+    try {
+      const data = await getRandomActor(selectedTag, [])
+      setRandomActor(data.data || null)
+    } catch (error) {
+      console.error('Error random actor:', error)
+    } finally {
+      setLoadingRandom(false)
+    }
   }
 
   return (
-    <div className="home-page">
-      <div className="page-header">
-        <h2 className="page-title">OUR TALENT</h2>
-        <p className="page-subtitle">
-          Discover exceptional actors from across Asia and Europe
-        </p>
-      </div>
-
-      <SearchBar onSearch={handleSearch} />
-      <FilterTabs activeFilter={activeFilter} onFilterChange={handleFilterChange} />
-      <ActorGrid actors={actors} loading={loading} />
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
+    <div className="wire-home">
+      <SectionRow
+        title="Asian"
+        actors={asianVisible}
+        onPrev={() => moveLeft(setAsianIndex)}
+        onNext={() => moveRight(asianActors, setAsianIndex)}
+        expandTo="/asian"
       />
+
+      <SectionRow
+        title="Europian"
+        actors={euroVisible}
+        onPrev={() => moveLeft(setEuroIndex)}
+        onNext={() => moveRight(europeanActors, setEuroIndex)}
+        expandTo="/europian"
+      />
+
+      <section className="random-wire">
+        <h3>Random</h3>
+        <div className="random-tags">
+          <button onClick={() => setSelectedTag('')} className={selectedTag === '' ? 'active' : ''}>All</button>
+          <button onClick={() => setSelectedTag('asian')} className={selectedTag === 'asian' ? 'active' : ''}>Asian</button>
+          <button onClick={() => setSelectedTag('european')} className={selectedTag === 'european' ? 'active' : ''}>Europian</button>
+        </div>
+        <div className="random-box">
+          {randomActor ? <img src={randomActor.imageUrl} alt={randomActor.name} /> : null}
+        </div>
+        <button className="random-btn" onClick={handleRandom} disabled={loadingRandom}>
+          {loadingRandom ? 'Loading...' : 'Random button'}
+        </button>
+      </section>
     </div>
   )
 }

@@ -5,20 +5,23 @@ function Header({ user }) {
   return (
     <header className="header">
       <div className="header-content">
-        <Link to="/" className="logo">
-          <h1>JPactress</h1>
-          <p className="logo-subtitle">TALENT AGENCY</p>
-        </Link>
+        <Link to="/" className="logo">Logo</Link>
+
+        <div className="header-search">
+          <input type="text" placeholder="Search Bar" aria-label="Search" />
+        </div>
+
         <nav className="header-nav">
-          <Link to="/">HOME</Link>
-          <Link to="/random">RANDOM</Link>
-          <Link to="https://missav.ws/dm223/en">MISSAV</Link>
-          <Link to="https://beeg.com/">BEEG</Link>
+          <Link to="/">Home</Link>
+          <Link to="/asian">Asian</Link>
+          <Link to="/europian">Europian</Link>
+          <Link to="https://missav.ws/dm223/en" target="_blank" rel="noreferrer">MissAV</Link>
+          <Link to="https://beeg.com/" target="_blank" rel="noreferrer">Beeg</Link>
 
           {user ? (
-            <Link to="/admin">DASHBOARD</Link>
+            <Link to="/admin">Admin</Link>
           ) : (
-            <Link to="/login">ADMIN</Link>
+            <Link to="/login">Admin</Link>
           )}
         </nav>
       </div>

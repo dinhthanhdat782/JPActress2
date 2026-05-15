@@ -1,0 +1,34 @@
+.category-page {
+  padding: 26px 0 40px;
+  color: #111;
+}
+
+.category-page h2 {
+  margin-bottom: 18px;
+  font-size: 2rem;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 16px;
+}
+
+.category-card {
+  border: 2px solid #111;
+  background: #fff;
+  display: block;
+}
+
+.category-card img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+}
+
+.category-card span {
+  display: block;
+  padding: 10px;
+  font-weight: 700;
+}
