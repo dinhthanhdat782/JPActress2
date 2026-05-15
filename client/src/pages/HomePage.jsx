@@ -65,6 +65,7 @@ function HomePage() {
   const [excludeIds, setExcludeIds] = useState([])
   const [remaining, setRemaining] = useState(null)
   const [noMore, setNoMore] = useState(false)
+  const [hasStarted, setHasStarted] = useState(false)
 
   useEffect(() => {
     const loadHomeData = async () => {
@@ -120,11 +121,13 @@ function HomePage() {
     setExcludeIds([])
     setRemaining(null)
     setNoMore(false)
+    setHasStarted(false)
   }
 
   const handleRandom = async () => {
     setLoadingRandom(true)
     setNoMore(false)
+    setHasStarted(true)
     try {
       const data = await getRandomActor(selectedTag, excludeIds)
       if (!data.data) {
@@ -173,32 +176,42 @@ function HomePage() {
           <button onClick={() => handleTagChange('asian')} className={selectedTag === 'asian' ? 'active' : ''}>Asian</button>
           <button onClick={() => handleTagChange('european')} className={selectedTag === 'european' ? 'active' : ''}>Europian</button>
         </div>
-        {remaining !== null && (
+        {hasStarted && remaining !== null && (
           <p className="remaining-text">
             {remaining} remaining
           </p>
         )}
-        <div className="random-box">
-          {randomActor ? (
-            <a
-              href={randomActor.profileLink}
-              target={randomActor.profileLink?.startsWith('http') ? '_blank' : '_self'}
-              rel="noreferrer"
-              className="random-card-link"
-            >
+
+        {(hasStarted || loadingRandom || randomActor) && (
+          <div className="random-box">
+            {loadingRandom ? (
               <div className="random-card-image-wrap">
-                <img src={randomActor.imageUrl} alt={randomActor.name} />
+                <div className="card-placeholder">
+                  <p>Drawing...</p>
+                </div>
               </div>
-              <div className="random-card-content">
-                <span className={`random-card-tag tag-${randomActor.tags}`}>
-                  {randomActor.tags === 'asian' ? 'ASIAN' : 'EUROPIAN'}
-                </span>
-                <h4>{randomActor.name}</h4>
-                <span className="random-card-cta">VIEW PROFILE →</span>
-              </div>
-            </a>
-          ) : null}
-        </div>
+            ) : randomActor ? (
+              <a
+                href={randomActor.profileLink}
+                target={randomActor.profileLink?.startsWith('http') ? '_blank' : '_self'}
+                rel="noreferrer"
+                className="random-card-link"
+              >
+                <div className="random-card-image-wrap">
+                  <img src={randomActor.imageUrl} alt={randomActor.name} />
+                  <div className="random-overlay">
+                    <div className={`random-card-tag tag-${randomActor.tags}`}>
+                      {randomActor.tags === 'asian' ? 'ASIAN' : 'EUROPIAN'}
+                    </div>
+                    <div className="random-name">{randomActor.name}</div>
+                  </div>
+                </div>
+              </a>
+            ) : (
+              <div className="random-box-empty" />
+            )}
+          </div>
+        )}
         {noMore && <p className="no-more-text">No more actors, reset to start over.</p>}
         <div className="random-actions">
           <button className="random-btn" onClick={handleRandom} disabled={loadingRandom || noMore}>

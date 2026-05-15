@@ -37,8 +37,12 @@ function CategoryPage({ title, tag }) {
               target={actor.profileLink?.startsWith('http') ? '_blank' : '_self'}
               rel="noreferrer"
             >
-              <img src={actor.imageUrl} alt={actor.name} />
-              <span>{actor.name}</span>
+              <div className="category-image-wrap">
+                <img src={actor.imageUrl} alt={actor.name} />
+                <div className="category-overlay">
+                  <span className="category-name">{actor.name}</span>
+                </div>
+              </div>
             </a>
           ))}
         </div>

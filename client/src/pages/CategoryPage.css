@@ -36,9 +36,37 @@
   display: block;
 }
 
-.category-card span {
+.category-image-wrap {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.category-image-wrap img {
   display: block;
-  padding: 10px;
-  font-weight: 700;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+.category-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 18px;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(10,10,10,0.9) 0%, rgba(10,10,10,0.5) 28%, rgba(10,10,10,0.12) 48%, transparent 68%);
+}
+
+.category-name {
   color: var(--text-primary);
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.6px;
+  text-align: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.25);
 }
