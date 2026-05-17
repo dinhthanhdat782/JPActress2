@@ -3,8 +3,24 @@ import axios from 'axios';
 const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
 // ========== Actor API (Public) ==========
-export const getActors = async (page = 1, limit = 12, tags = '') => {
+export const getActors = async (page = 1, limit = 12, tags = '', query = '') => {
   const params = { page, limit };
+  if (tags) params.tags = tags;
+  if (query) params.q = query;
+  const response = await axios.get(`${API_URL}/actors`, { params });
+  return response.data;
+};
+
+export const getSeries = async (page = 1, limit = 10, tags = '', query = '') => {
+  const params = { page, limit };
+  if (tags) params.tags = tags;
+  if (query) params.q = query;
+  const response = await axios.get(`${API_URL}/series`, { params });
+  return response.data;
+};
+
+export const searchActors = async (query, limit = 8, tags = '') => {
+  const params = { page: 1, limit, q: query };
   if (tags) params.tags = tags;
   const response = await axios.get(`${API_URL}/actors`, { params });
   return response.data;
@@ -55,6 +71,21 @@ export const updateActor = async (id, actorData) => {
 
 export const deleteActor = async (id) => {
   const response = await axios.delete(`${API_URL}/actors/${id}`, getAuthHeaders());
+  return response.data;
+};
+
+export const createSeries = async (seriesData) => {
+  const response = await axios.post(`${API_URL}/series`, seriesData, getAuthHeaders());
+  return response.data;
+};
+
+export const updateSeries = async (id, seriesData) => {
+  const response = await axios.put(`${API_URL}/series/${id}`, seriesData, getAuthHeaders());
+  return response.data;
+};
+
+export const deleteSeries = async (id) => {
+  const response = await axios.delete(`${API_URL}/series/${id}`, getAuthHeaders());
   return response.data;
 };
 

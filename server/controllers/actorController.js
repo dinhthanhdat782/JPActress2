@@ -2,8 +2,8 @@ const Actor = require('../models/Actor');
 const cloudinary = require('../config/cloudinary');
 const { extractPublicIdFromUrl } = require('../utils/cloudinary');
 
-// @desc    Get all actors (with pagination + filter by tags)
-// @route   GET /api/actors?tags=asian&page=1&limit=12
+// @desc    Get all actors (with pagination + filters)
+// @route   GET /api/actors?tags=asian&q=yua&page=1&limit=12
 const getActors = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -15,9 +15,15 @@ const getActors = async (req, res) => {
     if (req.query.tags) {
       filter.tags = req.query.tags;
     }
+    if (req.query.q) {
+      filter.name = { $regex: req.query.q.trim(), $options: 'i' };
+    }
 
     const total = await Actor.countDocuments(filter);
-    const actors = await Actor.find(filter).skip(skip).limit(limit);
+    const actors = await Actor.find(filter)
+      .sort({ name: 1 })
+      .skip(skip)
+      .limit(limit);
 
     res.json({
       success: true,
@@ -50,7 +56,13 @@ const getActor = async (req, res) => {
 const createActor = async (req, res) => {
   try {
     const { name, imageUrl, imagePublicId, profileLink, tags } = req.body;
-    const actor = await Actor.create({ name, imageUrl, imagePublicId, profileLink, tags });
+    const actor = await Actor.create({
+      name,
+      imageUrl,
+      imagePublicId,
+      profileLink,
+      tags,
+    });
     res.status(201).json({ success: true, data: actor });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });

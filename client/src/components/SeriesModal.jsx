@@ -1,13 +1,13 @@
-import { useState, useRef } from 'react'
+import { useRef, useState } from 'react'
 import { uploadImage } from '../services/api'
 import './ActorModal.css'
 
-function ActorModal({ actor, onSave, onClose }) {
+function SeriesModal({ series, onSave, onClose }) {
   const [formData, setFormData] = useState({
-    name: actor?.name || '',
-    imageUrl: actor?.imageUrl || '',
-    profileLink: actor?.profileLink || '',
-    tags: actor?.tags || 'asian',
+    name: series?.name || '',
+    imageUrl: series?.imageUrl || '',
+    profileLink: series?.profileLink || '',
+    tags: series?.tags || 'asian',
   })
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef(null)
@@ -39,19 +39,19 @@ function ActorModal({ actor, onSave, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{actor ? 'EDIT ACTOR' : 'ADD NEW ACTOR'}</h3>
+          <h3>{series ? 'EDIT SERIES' : 'ADD NEW SERIES'}</h3>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
-            <label>NAME</label>
+            <label>SERIES NAME</label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Actor name"
+              placeholder="Series name/code (e.g. IPX, SONE...)"
               required
             />
           </div>
@@ -65,6 +65,7 @@ function ActorModal({ actor, onSave, onClose }) {
                 value={formData.imageUrl}
                 onChange={handleChange}
                 placeholder="Paste URL or upload file below"
+                required
               />
               <input
                 type="file"
@@ -91,10 +92,9 @@ function ActorModal({ actor, onSave, onClose }) {
               name="profileLink"
               value={formData.profileLink}
               onChange={handleChange}
-              placeholder="https://instagram.com/actor-name"
+              placeholder="https://..."
               required
             />
-            <span className="form-hint">External link (Instagram, Twitter, IMDB, etc.)</span>
           </div>
 
           <div className="form-group">
@@ -117,7 +117,7 @@ function ActorModal({ actor, onSave, onClose }) {
               CANCEL
             </button>
             <button type="submit" className="btn-save" disabled={uploading}>
-              {actor ? 'UPDATE' : 'CREATE'}
+              {series ? 'UPDATE' : 'CREATE'}
             </button>
           </div>
         </form>
@@ -126,4 +126,4 @@ function ActorModal({ actor, onSave, onClose }) {
   )
 }
 
-export default ActorModal
+export default SeriesModal

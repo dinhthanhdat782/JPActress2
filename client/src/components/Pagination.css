@@ -17,13 +17,14 @@
   font-weight: 500;
   letter-spacing: 1px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all var(--dur-fast) var(--ease-smooth);
   font-family: 'Inter', sans-serif;
 }
 
 .page-btn:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .page-btn:disabled {

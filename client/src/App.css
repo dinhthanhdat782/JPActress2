@@ -6,6 +6,7 @@
     radial-gradient(800px 380px at 20% -10%, rgba(200, 169, 110, 0.12), transparent 55%),
     radial-gradient(700px 420px at 95% 0%, rgba(120, 120, 120, 0.12), transparent 55%),
     var(--bg-primary);
+  animation: fadeInUp var(--dur-slow) var(--ease-smooth);
 }
 
 .main-content {
@@ -14,6 +15,7 @@
   margin: 0 auto;
   padding: 0 40px;
   width: 100%;
+  animation: fadeInUp var(--dur-mid) var(--ease-smooth);
 }
 
 @media (max-width: 768px) {

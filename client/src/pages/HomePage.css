@@ -5,6 +5,7 @@
 
 .home-section {
   margin-bottom: 30px;
+  animation: fadeInUp var(--dur-mid) var(--ease-smooth);
 }
 
 .home-section-head {
@@ -47,6 +48,11 @@
   padding: 10px 14px;
   column-gap: 10px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 40px rgba(0, 0, 0, 0.36);
+  transition: box-shadow var(--dur-mid) var(--ease-smooth), transform var(--dur-mid) var(--ease-smooth);
+}
+
+.home-row-shell:hover {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07), 0 30px 52px rgba(0, 0, 0, 0.42);
 }
 
 .arrow-btn {
@@ -94,12 +100,31 @@
   border-radius: 22px;
   overflow: hidden;
   box-shadow: 0 14px 26px rgba(0, 0, 0, 0.34);
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  transition: transform var(--dur-fast) var(--ease-smooth), box-shadow var(--dur-fast) var(--ease-smooth), filter var(--dur-fast) var(--ease-smooth);
+  position: relative;
 }
 
 .wire-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 24px 36px rgba(0, 0, 0, 0.44);
+  filter: brightness(1.05);
+}
+
+.wire-card::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -40%;
+  width: 50%;
+  height: 160%;
+  background: linear-gradient(115deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.wire-card:hover::after {
+  opacity: 1;
+  animation: softShine 900ms var(--ease-smooth);
 }
 
 .wire-card img {
@@ -108,6 +133,41 @@
   height: 100%;
   min-height: 260px;
   object-fit: cover;
+}
+
+.wire-image-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.wire-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 18px;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(10,10,10,0.9) 0%, rgba(10,10,10,0.5) 28%, rgba(10,10,10,0.12) 48%, transparent 68%);
+}
+
+.wire-name {
+  color: var(--text-primary);
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.6px;
+  text-align: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.25);
+  transition: transform var(--dur-fast) var(--ease-smooth), background var(--dur-fast) var(--ease-smooth);
+}
+
+.wire-card:hover .wire-name {
+  transform: translateY(-2px);
+  background: rgba(0,0,0,0.38);
 }
 
 .random-wire {
@@ -154,6 +214,16 @@
   overflow: hidden;
   border: 1px solid var(--border);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.48), 0 0 30px rgba(200, 169, 110, 0.06);
+  transition: transform var(--dur-mid) var(--ease-smooth), box-shadow var(--dur-mid) var(--ease-smooth);
+}
+
+.random-box:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 28px 50px rgba(0, 0, 0, 0.55), 0 0 34px rgba(200, 169, 110, 0.1);
+}
+
+.random-card-tag {
+  animation: gentleFloat 2.8s var(--ease-smooth) infinite;
 }
 
 .random-card-link {

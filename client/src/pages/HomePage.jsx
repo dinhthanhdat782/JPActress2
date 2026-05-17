@@ -41,7 +41,12 @@ function SectionRow({ title, actors, onPrev, onNext, expandTo, canPrev, canNext 
               target={actor.profileLink?.startsWith('http') ? '_blank' : '_self'}
               rel="noreferrer"
             >
-              <img src={actor.imageUrl} alt={actor.name} />
+              <div className="wire-image-wrap">
+                <img src={actor.imageUrl} alt={actor.name} />
+                <div className="wire-overlay">
+                  <span className="wire-name">{actor.name}</span>
+                </div>
+              </div>
             </a>
           ))}
         </div>

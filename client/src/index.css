@@ -16,6 +16,10 @@
   --accent: #c8a96e;
   --accent-hover: #d4b87a;
   --border: #2a2a2a;
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 180ms;
+  --dur-mid: 300ms;
+  --dur-slow: 550ms;
 }
 
 body {
@@ -23,9 +27,70 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
+  background-image:
+    radial-gradient(900px 500px at 15% -20%, rgba(200, 169, 110, 0.1), transparent 60%),
+    radial-gradient(700px 450px at 90% -5%, rgba(90, 120, 160, 0.09), transparent 60%);
+  background-attachment: fixed;
 }
 
 a {
   text-decoration: none;
   color: inherit;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(200, 169, 110, 0.45) rgba(255, 255, 255, 0.06);
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(200, 169, 110, 0.45);
+  border-radius: 999px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes softShine {
+  0% {
+    transform: translateX(-140%);
+    opacity: 0;
+  }
+  45% {
+    opacity: 0.22;
+  }
+  100% {
+    transform: translateX(140%);
+    opacity: 0;
+  }
+}
+
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }

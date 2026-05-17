@@ -17,18 +17,20 @@ function ActorCard({ actor }) {
           className="actor-image"
           loading="lazy"
         />
-        <div className="actor-overlay">
-          <span className="view-profile">
-            {isExternalLink ? '🔗 OPEN PROFILE' : 'VIEW PROFILE'}
+          <div className="actor-overlay">
+            <div className="actor-caption">
+              <span className="actor-card-name">{actor.name}</span>
+            </div>
+            <span className="view-profile">
+              {isExternalLink ? '🔗 OPEN PROFILE' : 'VIEW PROFILE'}
+            </span>
+          </div>
+      </div>
+        <div className="actor-info">
+          <span className={`actor-tag tag-${actor.tags}`}>
+            {actor.tags === 'asian' ? 'ASIAN' : 'EUROPEAN'}
           </span>
         </div>
-      </div>
-      <div className="actor-info">
-        <h3 className="actor-name">{actor.name}</h3>
-        <span className={`actor-tag tag-${actor.tags}`}>
-          {actor.tags === 'asian' ? 'ASIAN' : 'EUROPEAN'}
-        </span>
-      </div>
     </a>
   )
 }
