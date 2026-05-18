@@ -161,6 +161,7 @@ function Header({ user }) {
         <nav className="header-nav">
           <Link to="/">HOME</Link>
           <Link to="/asian">ASIAN</Link>
+          <Link to="/series">SERIES</Link>
           <Link to="/europian">EUROPIAN</Link>
           <Link to="https://missav.ws/dm223/en" target="_blank" rel="noreferrer">MISSAV</Link>
           <Link to="https://beeg.com/" target="_blank" rel="noreferrer">BEEG</Link>

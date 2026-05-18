@@ -1,26 +1,28 @@
 import { useEffect, useState } from 'react'
-import { getActors } from '../services/api'
+import { getActors, getSeries } from '../services/api'
 import './CategoryPage.css'
 
-function CategoryPage({ title, tag }) {
-  const [actors, setActors] = useState([])
+function CategoryPage({ title, tag, type = 'actors' }) {
+  const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchActors = async () => {
+    const fetchItems = async () => {
       setLoading(true)
       try {
-        const data = await getActors(1, 60, tag)
-        setActors(data.data || [])
+        const data = type === 'series'
+          ? await getSeries(1, 60)
+          : await getActors(1, 60, tag)
+        setItems(data.data || [])
       } catch (error) {
-        console.error(`Error fetching ${tag} actors:`, error)
+        console.error(`Error fetching ${type}:`, error)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchActors()
-  }, [tag])
+    fetchItems()
+  }, [tag, type])
 
   return (
     <div className="category-page">
@@ -29,18 +31,18 @@ function CategoryPage({ title, tag }) {
         <p>Loading...</p>
       ) : (
         <div className="category-grid">
-          {actors.map((actor) => (
+          {items.map((item) => (
             <a
-              key={actor._id}
+              key={item._id}
               className="category-card"
-              href={actor.profileLink}
-              target={actor.profileLink?.startsWith('http') ? '_blank' : '_self'}
+              href={item.profileLink}
+              target={item.profileLink?.startsWith('http') ? '_blank' : '_self'}
               rel="noreferrer"
             >
               <div className="category-image-wrap">
-                <img src={actor.imageUrl} alt={actor.name} />
+                <img src={item.imageUrl} alt={item.name} />
                 <div className="category-overlay">
-                  <span className="category-name">{actor.name}</span>
+                  <span className="category-name">{item.name}</span>
                 </div>
               </div>
             </a>

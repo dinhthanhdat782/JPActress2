@@ -4,6 +4,7 @@ import Header from './components/Header'
 import HomePage from './pages/HomePage'
 import AsianPage from './pages/AsianPage'
 import EuropeanPage from './pages/EuropeanPage'
+import SeriesPage from './pages/SeriesPage'
 import LoginPage from './pages/LoginPage'
 import AdminPage from './pages/AdminPage'
 import Footer from './components/Footer'
@@ -37,6 +38,7 @@ function App() {
             <Route path="/asian" element={<AsianPage />} />
             <Route path="/europian" element={<EuropeanPage />} />
             <Route path="/european" element={<EuropeanPage />} />
+            <Route path="/series" element={<SeriesPage />} />
             <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
             <Route path="/admin" element={<AdminPage user={user} onLogout={handleLogout} />} />
           </Routes>

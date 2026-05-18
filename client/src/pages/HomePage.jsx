@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getActors, getRandomActor } from '../services/api'
+import { getActors, getRandomActor, getSeries } from '../services/api'
 import './HomePage.css'
 
 function ChevronLeft() {
@@ -61,8 +61,10 @@ function SectionRow({ title, actors, onPrev, onNext, expandTo, canPrev, canNext 
 function HomePage() {
   const [asianActors, setAsianActors] = useState([])
   const [europeanActors, setEuropeanActors] = useState([])
+  const [seriesList, setSeriesList] = useState([])
   const [asianSeed, setAsianSeed] = useState(0)
   const [euroSeed, setEuroSeed] = useState(0)
+  const [seriesSeed, setSeriesSeed] = useState(0)
 
   const [selectedTag, setSelectedTag] = useState('')
   const [randomActor, setRandomActor] = useState(null)
@@ -75,12 +77,14 @@ function HomePage() {
   useEffect(() => {
     const loadHomeData = async () => {
       try {
-        const [asianRes, euroRes] = await Promise.all([
+        const [asianRes, euroRes, seriesRes] = await Promise.all([
           getActors(1, 30, 'asian'),
           getActors(1, 30, 'european'),
+          getSeries(1, 30),
         ])
         setAsianActors(asianRes.data || [])
         setEuropeanActors(euroRes.data || [])
+        setSeriesList(seriesRes.data || [])
       } catch (error) {
         console.error('Error loading homepage data:', error)
       }
@@ -110,6 +114,7 @@ function HomePage() {
     () => pickRandomSix(europeanActors, euroSeed),
     [europeanActors, euroSeed]
   )
+  const seriesVisible = useMemo(() => pickRandomSix(seriesList, seriesSeed), [seriesList, seriesSeed])
 
   const rerandomize = (setter) => setter(Date.now() + Math.floor(Math.random() * 100000))
 
@@ -134,6 +139,23 @@ function HomePage() {
     setNoMore(false)
     setHasStarted(true)
     try {
+      if (selectedTag === 'series') {
+        const availableSeries = seriesList.filter((item) => !excludeIds.includes(item._id))
+        if (availableSeries.length === 0) {
+          setNoMore(true)
+          setRemaining(0)
+          setRandomActor(null)
+          return
+        }
+
+        const pickedSeries = availableSeries[Math.floor(Math.random() * availableSeries.length)]
+        const nextExcludeIds = [...excludeIds, pickedSeries._id]
+        setRandomActor(pickedSeries)
+        setExcludeIds(nextExcludeIds)
+        setRemaining(seriesList.length - nextExcludeIds.length)
+        return
+      }
+
       const data = await getRandomActor(selectedTag, excludeIds)
       if (!data.data) {
         setNoMore(true)
@@ -174,12 +196,23 @@ function HomePage() {
         canNext={europeanActors.length > 6}
       />
 
+      <SectionRow
+        title="Series"
+        actors={seriesVisible}
+        onPrev={() => rerandomize(setSeriesSeed)}
+        onNext={() => rerandomize(setSeriesSeed)}
+        expandTo="/series"
+        canPrev={seriesList.length > 6}
+        canNext={seriesList.length > 6}
+      />
+
       <section className="random-wire">
         <h3>Random</h3>
         <div className="random-tags">
           <button onClick={() => handleTagChange('')} className={selectedTag === '' ? 'active' : ''}>All</button>
           <button onClick={() => handleTagChange('asian')} className={selectedTag === 'asian' ? 'active' : ''}>Asian</button>
           <button onClick={() => handleTagChange('european')} className={selectedTag === 'european' ? 'active' : ''}>Europian</button>
+          <button onClick={() => handleTagChange('series')} className={selectedTag === 'series' ? 'active' : ''}>Series</button>
         </div>
         {hasStarted && remaining !== null && (
           <p className="remaining-text">
@@ -206,7 +239,7 @@ function HomePage() {
                   <img src={randomActor.imageUrl} alt={randomActor.name} />
                   <div className="random-overlay">
                     <div className={`random-card-tag tag-${randomActor.tags}`}>
-                      {randomActor.tags === 'asian' ? 'ASIAN' : 'EUROPIAN'}
+                      {selectedTag === 'series' ? 'SERIES' : (randomActor.tags === 'asian' ? 'ASIAN' : 'EUROPIAN')}
                     </div>
                     <div className="random-name">{randomActor.name}</div>
                   </div>
@@ -217,7 +250,7 @@ function HomePage() {
             )}
           </div>
         )}
-        {noMore && <p className="no-more-text">No more actors, reset to start over.</p>}
+        {noMore && <p className="no-more-text">No more items, reset to start over.</p>}
         <div className="random-actions">
           <button className="random-btn" onClick={handleRandom} disabled={loadingRandom || noMore}>
             {loadingRandom ? 'Drawing...' : noMore ? 'Completed' : 'Random pick'}
