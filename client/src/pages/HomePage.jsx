@@ -65,6 +65,7 @@ function HomePage() {
   const [asianSeed, setAsianSeed] = useState(0)
   const [euroSeed, setEuroSeed] = useState(0)
   const [seriesSeed, setSeriesSeed] = useState(0)
+  const [featuredIndex, setFeaturedIndex] = useState(0)
 
   const [selectedTag, setSelectedTag] = useState('')
   const [randomActor, setRandomActor] = useState(null)
@@ -115,8 +116,20 @@ function HomePage() {
     [europeanActors, euroSeed]
   )
   const seriesVisible = useMemo(() => pickRandomSix(seriesList, seriesSeed), [seriesList, seriesSeed])
+  const featuredPool = useMemo(() => [...asianActors, ...europeanActors], [asianActors, europeanActors])
+  const featuredActor = featuredPool.length ? featuredPool[featuredIndex % featuredPool.length] : null
 
   const rerandomize = (setter) => setter(Date.now() + Math.floor(Math.random() * 100000))
+
+  useEffect(() => {
+    if (featuredPool.length < 2) return
+
+    const intervalId = setInterval(() => {
+      setFeaturedIndex((prev) => (prev + 1) % featuredPool.length)
+    }, 6000)
+
+    return () => clearInterval(intervalId)
+  }, [featuredPool])
 
   const handleTagChange = (tag) => {
     setSelectedTag(tag)
@@ -176,6 +189,39 @@ function HomePage() {
 
   return (
     <div className="wire-home">
+      {featuredActor && (
+        <section className="hero-wire">
+          <img className="hero-bg" src={featuredActor.imageUrl} alt={featuredActor.name} />
+          <div className="hero-overlay">
+            <div className="hero-switch">
+              <button onClick={() => setFeaturedIndex((prev) => (prev - 1 + featuredPool.length) % featuredPool.length)} aria-label="Previous featured">
+                ‹
+              </button>
+              <button onClick={() => setFeaturedIndex((prev) => (prev + 1) % featuredPool.length)} aria-label="Next featured">
+                ›
+              </button>
+            </div>
+            <div className="hero-content">
+              <div className="hero-portrait">
+                <img src={featuredActor.imageUrl} alt={featuredActor.name} />
+              </div>
+              <div className="hero-copy">
+                <span className="hero-badge">Featured Talent</span>
+                <h2>{featuredActor.name}</h2>
+                <a
+                  href={featuredActor.profileLink}
+                  target={featuredActor.profileLink?.startsWith('http') ? '_blank' : '_self'}
+                  rel="noreferrer"
+                  className="hero-cta"
+                >
+                  View Gallery
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       <SectionRow
         title="Asian"
         actors={asianVisible}
@@ -187,7 +233,7 @@ function HomePage() {
       />
 
       <SectionRow
-        title="Europian"
+        title="European"
         actors={euroVisible}
         onPrev={() => rerandomize(setEuroSeed)}
         onNext={() => rerandomize(setEuroSeed)}
@@ -211,7 +257,7 @@ function HomePage() {
         <div className="random-tags">
           <button onClick={() => handleTagChange('')} className={selectedTag === '' ? 'active' : ''}>All</button>
           <button onClick={() => handleTagChange('asian')} className={selectedTag === 'asian' ? 'active' : ''}>Asian</button>
-          <button onClick={() => handleTagChange('european')} className={selectedTag === 'european' ? 'active' : ''}>Europian</button>
+          <button onClick={() => handleTagChange('european')} className={selectedTag === 'european' ? 'active' : ''}>European</button>
           <button onClick={() => handleTagChange('series')} className={selectedTag === 'series' ? 'active' : ''}>Series</button>
         </div>
         {hasStarted && remaining !== null && (

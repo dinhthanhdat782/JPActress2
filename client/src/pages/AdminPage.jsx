@@ -236,13 +236,15 @@ function AdminPage({ user, onLogout }) {
                   <td>
                     <img src={item.imageUrl} alt={item.name} className="table-img" />
                   </td>
-                  <td className="table-name">{item.name}</td>
+                  <td className="table-name" title={item.name}>{item.name}</td>
                   <td>
                     <span className={`table-tag tag-${item.tags}`}>
                       {item.tags.toUpperCase()}
                     </span>
                   </td>
-                  <td className="table-link">{item.profileLink}</td>
+                  <td className="table-link" title={item.profileLink}>
+                    {item.profileLink}
+                  </td>
                   <td>
                     <div className="table-actions">
                       <button
