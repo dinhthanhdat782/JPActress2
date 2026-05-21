@@ -59,12 +59,14 @@ function SectionRow({ title, actors, onPrev, onNext, expandTo, canPrev, canNext 
 }
 
 function HomePage() {
+  const createSeed = () => Date.now() + Math.floor(Math.random() * 1000000)
+
   const [asianActors, setAsianActors] = useState([])
   const [europeanActors, setEuropeanActors] = useState([])
   const [seriesList, setSeriesList] = useState([])
-  const [asianSeed, setAsianSeed] = useState(0)
-  const [euroSeed, setEuroSeed] = useState(0)
-  const [seriesSeed, setSeriesSeed] = useState(0)
+  const [asianSeed, setAsianSeed] = useState(() => createSeed())
+  const [euroSeed, setEuroSeed] = useState(() => createSeed())
+  const [seriesSeed, setSeriesSeed] = useState(() => createSeed())
   const [featuredIndex, setFeaturedIndex] = useState(0)
 
   const [selectedTag, setSelectedTag] = useState('')
@@ -119,10 +121,12 @@ function HomePage() {
   const featuredPool = useMemo(() => [...asianActors, ...europeanActors], [asianActors, europeanActors])
   const featuredActor = featuredPool.length ? featuredPool[featuredIndex % featuredPool.length] : null
 
-  const rerandomize = (setter) => setter(Date.now() + Math.floor(Math.random() * 100000))
+  const rerandomize = (setter) => setter(createSeed())
 
   useEffect(() => {
     if (featuredPool.length < 2) return
+
+    setFeaturedIndex(Math.floor(Math.random() * featuredPool.length))
 
     const intervalId = setInterval(() => {
       setFeaturedIndex((prev) => (prev + 1) % featuredPool.length)
