@@ -1,7 +1,10 @@
 import './ActorCard.css'
+import { getOptimizedImageSrcSet, getOptimizedImageUrl } from '../utils/image'
 
 function ActorCard({ actor }) {
   const isExternalLink = actor.profileLink?.startsWith('http')
+  const imageSrc = getOptimizedImageUrl(actor.imageUrl, 520)
+  const imageSrcSet = getOptimizedImageSrcSet(actor.imageUrl, 260)
 
   return (
     <a
@@ -12,7 +15,9 @@ function ActorCard({ actor }) {
     >
       <div className="actor-image-wrapper">
         <img
-          src={actor.imageUrl}
+          src={imageSrc}
+          srcSet={imageSrcSet}
+          sizes="(max-width: 768px) 50vw, 260px"
           alt={actor.name}
           className="actor-image"
           loading="lazy"

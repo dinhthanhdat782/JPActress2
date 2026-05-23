@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getActors, getRandomActor, getSeries } from '../services/api'
+import { getOptimizedImageSrcSet, getOptimizedImageUrl } from '../utils/image'
 import './HomePage.css'
 
 function ChevronLeft() {
@@ -42,7 +43,13 @@ function SectionRow({ title, actors, onPrev, onNext, expandTo, canPrev, canNext 
               rel="noreferrer"
             >
               <div className="wire-image-wrap">
-                <img src={actor.imageUrl} alt={actor.name} />
+                <img
+                  src={getOptimizedImageUrl(actor.imageUrl, 640)}
+                  srcSet={getOptimizedImageSrcSet(actor.imageUrl, 320)}
+                  sizes="(max-width: 768px) 48vw, (max-width: 1100px) 30vw, 16vw"
+                  alt={actor.name}
+                  loading="lazy"
+                />
                 <div className="wire-overlay">
                   <span className="wire-name">{actor.name}</span>
                 </div>
@@ -195,7 +202,13 @@ function HomePage() {
     <div className="wire-home">
       {featuredActor && (
         <section className="hero-wire">
-          <img className="hero-bg" src={featuredActor.imageUrl} alt={featuredActor.name} />
+          <img
+            className="hero-bg"
+            src={getOptimizedImageUrl(featuredActor.imageUrl, 1400)}
+            srcSet={getOptimizedImageSrcSet(featuredActor.imageUrl, 700)}
+            sizes="100vw"
+            alt={featuredActor.name}
+          />
           <div className="hero-overlay">
             <div className="hero-switch">
               <button onClick={() => setFeaturedIndex((prev) => (prev - 1 + featuredPool.length) % featuredPool.length)} aria-label="Previous featured">
@@ -207,7 +220,12 @@ function HomePage() {
             </div>
             <div className="hero-content">
               <div className="hero-portrait">
-                <img src={featuredActor.imageUrl} alt={featuredActor.name} />
+                <img
+                  src={getOptimizedImageUrl(featuredActor.imageUrl, 420)}
+                  srcSet={getOptimizedImageSrcSet(featuredActor.imageUrl, 210)}
+                  sizes="(max-width: 768px) 92px, 145px"
+                  alt={featuredActor.name}
+                />
               </div>
               <div className="hero-copy">
                 <span className="hero-badge">Featured Talent</span>
@@ -286,7 +304,12 @@ function HomePage() {
                 className="random-card-link"
               >
                 <div className="random-card-image-wrap">
-                  <img src={randomActor.imageUrl} alt={randomActor.name} />
+                  <img
+                    src={getOptimizedImageUrl(randomActor.imageUrl, 520)}
+                    srcSet={getOptimizedImageSrcSet(randomActor.imageUrl, 260)}
+                    sizes="220px"
+                    alt={randomActor.name}
+                  />
                   <div className="random-overlay">
                     <div className={`random-card-tag tag-${randomActor.tags}`}>
                       {selectedTag === 'series' ? 'SERIES' : (randomActor.tags === 'asian' ? 'ASIAN' : 'EUROPIAN')}

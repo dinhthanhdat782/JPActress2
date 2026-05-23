@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getActors } from '../services/api'
+import { getOptimizedImageSrcSet, getOptimizedImageUrl } from '../utils/image'
 import './Header.css'
 
 function Header({ user }) {
@@ -10,7 +11,9 @@ function Header({ user }) {
   const [loadingData, setLoadingData] = useState(false)
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const searchRef = useRef(null)
+  const lastScrollYRef = useRef(0)
 
   useEffect(() => {
     let cancelled = false
@@ -73,6 +76,29 @@ function Header({ user }) {
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
 
+  useEffect(() => {
+    const onScroll = () => {
+      const currentScrollY = window.scrollY
+      const diff = currentScrollY - lastScrollYRef.current
+
+      if (Math.abs(diff) < 8) return
+
+      if (currentScrollY <= 10) {
+        setIsHeaderVisible(true)
+      } else if (diff > 0) {
+        setIsHeaderVisible(false)
+      } else {
+        setIsHeaderVisible(true)
+      }
+
+      lastScrollYRef.current = currentScrollY
+    }
+
+    lastScrollYRef.current = window.scrollY
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   const handleKeyDown = (event) => {
     if (!open || (!results.length && event.key !== 'Escape')) return
 
@@ -107,13 +133,17 @@ function Header({ user }) {
     setOpen(false)
   }
 
+  const adminPath = user ? '/admin' : '/login'
+
   return (
-    <header className="header">
+    <header className={`header ${isHeaderVisible ? 'header-visible' : 'header-hidden'}`}>
       <div className="header-content">
         <Link to="/" className="logo">
           <h1>JPactress</h1>
           <p className="logo-subtitle">TALENT AGENCY</p>
         </Link>
+
+        <Link to={adminPath} className="mobile-admin-link">ADMIN</Link>
 
         <div className="header-search" ref={searchRef}>
           <input
@@ -146,7 +176,13 @@ function Header({ user }) {
                     onMouseEnter={() => setActiveIndex(index)}
                     onClick={handlePick}
                   >
-                    <img src={actor.imageUrl} alt={actor.name} />
+                    <img
+                      src={getOptimizedImageUrl(actor.imageUrl, 160)}
+                      srcSet={getOptimizedImageSrcSet(actor.imageUrl, 80)}
+                      sizes="44px"
+                      alt={actor.name}
+                      loading="lazy"
+                    />
                     <div className="search-item-content">
                       <strong>{actor.name}</strong>
                       <span>{actor.tags === 'asian' ? 'Asian' : 'European'}</span>
@@ -161,16 +197,12 @@ function Header({ user }) {
         <nav className="header-nav">
           <Link to="/">HOME</Link>
           <Link to="/asian">ASIAN</Link>
+          <Link to="/european">EUROPEAN</Link>
           <Link to="/series">SERIES</Link>
-          <Link to="/europian">EUROPIAN</Link>
           <Link to="https://missav.ws/dm223/en" target="_blank" rel="noreferrer">MISSAV</Link>
           <Link to="https://beeg.com/" target="_blank" rel="noreferrer">BEEG</Link>
 
-          {user ? (
-            <Link to="/admin">ADMIN</Link>
-          ) : (
-            <Link to="/login">ADMIN</Link>
-          )}
+          <Link to={adminPath} className="desktop-admin-link">ADMIN</Link>
         </nav>
       </div>
     </header>

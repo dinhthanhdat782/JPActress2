@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getActors, getSeries } from '../services/api'
+import { getOptimizedImageSrcSet, getOptimizedImageUrl } from '../utils/image'
 import './CategoryPage.css'
 
 function CategoryPage({ title, tag, type = 'actors' }) {
@@ -49,7 +50,13 @@ function CategoryPage({ title, tag, type = 'actors' }) {
                 rel="noreferrer"
               >
                 <div className="category-image-wrap">
-                  <img src={item.imageUrl} alt={item.name} />
+                  <img
+                    src={getOptimizedImageUrl(item.imageUrl, 700)}
+                    srcSet={getOptimizedImageSrcSet(item.imageUrl, 350)}
+                    sizes="(max-width: 768px) 48vw, (max-width: 1200px) 30vw, 22vw"
+                    alt={item.name}
+                    loading="lazy"
+                  />
                   <div className="category-overlay">
                     <span className="category-name">{item.name}</span>
                   </div>
