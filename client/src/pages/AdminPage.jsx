@@ -32,6 +32,7 @@ function AdminPage({ user, onLogout }) {
   const [tagFilter, setTagFilter] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   const navigate = useNavigate()
 
@@ -50,18 +51,22 @@ function AdminPage({ user, onLogout }) {
     let isCancelled = false
 
     const loadData = async () => {
-      setLoading(true)
+      const isFirstPage = currentPage === 1
+      setLoading(isFirstPage)
+      setLoadingMore(!isFirstPage)
       setLoadError('')
       try {
         if (activeTab === 'actors') {
           const data = await getActors(currentPage, 10, tagFilter, debouncedSearch)
           if (isCancelled) return
-          setActors(data.data || [])
+          const nextRows = data.data || []
+          setActors((prev) => (isFirstPage ? nextRows : [...prev, ...nextRows]))
           setTotalPages(data.totalPages || 1)
         } else {
           const data = await getSeries(currentPage, 10, tagFilter, debouncedSearch)
           if (isCancelled) return
-          setSeriesList(data.data || [])
+          const nextRows = data.data || []
+          setSeriesList((prev) => (isFirstPage ? nextRows : [...prev, ...nextRows]))
           setTotalPages(data.totalPages || 1)
         }
       } catch (error) {
@@ -73,7 +78,10 @@ function AdminPage({ user, onLogout }) {
           setTotalPages(1)
         }
       } finally {
-        if (!isCancelled) setLoading(false)
+        if (!isCancelled) {
+          setLoading(false)
+          setLoadingMore(false)
+        }
       }
     }
 
@@ -102,9 +110,10 @@ function AdminPage({ user, onLogout }) {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
       try {
         await deleteActor(id)
-        const data = await getActors(currentPage, 10, tagFilter, debouncedSearch)
+        const data = await getActors(1, 10, tagFilter, debouncedSearch)
         setActors(data.data || [])
         setTotalPages(data.totalPages || 1)
+        setCurrentPage(1)
       } catch (error) {
         alert('Error deleting actor')
       }
@@ -115,9 +124,10 @@ function AdminPage({ user, onLogout }) {
     if (window.confirm(`Are you sure you want to delete series "${name}"?`)) {
       try {
         await deleteSeries(id)
-        const data = await getSeries(currentPage, 10, tagFilter, debouncedSearch)
+        const data = await getSeries(1, 10, tagFilter, debouncedSearch)
         setSeriesList(data.data || [])
         setTotalPages(data.totalPages || 1)
+        setCurrentPage(1)
       } catch (error) {
         alert('Error deleting series')
       }
@@ -132,9 +142,10 @@ function AdminPage({ user, onLogout }) {
         await createActor(actorData)
       }
       setShowActorModal(false)
-      const data = await getActors(currentPage, 10, tagFilter, debouncedSearch)
+      const data = await getActors(1, 10, tagFilter, debouncedSearch)
       setActors(data.data || [])
       setTotalPages(data.totalPages || 1)
+      setCurrentPage(1)
     } catch (error) {
       alert(error.response?.data?.message || 'Error saving actor')
     }
@@ -148,9 +159,10 @@ function AdminPage({ user, onLogout }) {
         await createSeries(seriesData)
       }
       setShowSeriesModal(false)
-      const data = await getSeries(currentPage, 10, tagFilter, debouncedSearch)
+      const data = await getSeries(1, 10, tagFilter, debouncedSearch)
       setSeriesList(data.data || [])
       setTotalPages(data.totalPages || 1)
+      setCurrentPage(1)
     } catch (error) {
       alert(error.response?.data?.message || 'Error saving series')
     }
@@ -164,6 +176,7 @@ function AdminPage({ user, onLogout }) {
 
   const isActorsTab = activeTab === 'actors'
   const rows = isActorsTab ? actors : seriesList
+  const hasMore = currentPage < totalPages
 
   return (
     <div className="admin-page">
@@ -287,17 +300,15 @@ function AdminPage({ user, onLogout }) {
         </div>
       )}
 
-      {totalPages > 1 && (
+      {hasMore && (
         <div className="admin-pagination">
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              className={`page-btn ${currentPage === i + 1 ? 'active' : ''}`}
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
+          <button
+            className="btn-load-more"
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            disabled={loadingMore}
+          >
+            {loadingMore ? 'Loading...' : 'Load more'}
+          </button>
         </div>
       )}
 
