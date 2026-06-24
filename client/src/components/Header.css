@@ -17,11 +17,13 @@
 }
 
 .logo {
-  min-width: 170px;
+  min-width: 220px;
   text-align: left;
   color: var(--text-primary);
-  padding: 8px 10px;
+  padding: 4px 8px;
   border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
   transition: transform var(--dur-mid) var(--ease-smooth), box-shadow var(--dur-mid) var(--ease-smooth);
 }
 
@@ -30,17 +32,10 @@
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.28);
 }
 
-.logo h1 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 2rem;
-  letter-spacing: -1px;
-}
-
-.logo-subtitle {
-  margin-top: 2px;
-  font-size: 0.65rem;
-  color: var(--accent-3);
-  letter-spacing: 4px;
+.logo-image {
+  width: 214px;
+  height: auto;
+  display: block;
 }
 
 .header-search {
@@ -211,16 +206,8 @@
     box-shadow: none;
   }
 
-  .logo h1 {
-    font-size: 1.2rem;
-    letter-spacing: 0;
-    line-height: 1.1;
-  }
-
-  .logo-subtitle {
-    margin-top: 2px;
-    font-size: 0.56rem;
-    letter-spacing: 3px;
+  .logo-image {
+    width: 150px;
   }
 
   .mobile-admin-link {

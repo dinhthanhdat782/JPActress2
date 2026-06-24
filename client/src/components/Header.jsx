@@ -139,8 +139,7 @@ function Header({ user }) {
     <header className={`header ${isHeaderVisible ? 'header-visible' : 'header-hidden'}`}>
       <div className="header-content">
         <Link to="/" className="logo">
-          <h1>JPactress</h1>
-          <p className="logo-subtitle">TALENT AGENCY</p>
+          <img src="/jpactress-logo.svg" alt="JPactress" className="logo-image" />
         </Link>
 
         <Link to={adminPath} className="mobile-admin-link">ADMIN</Link>

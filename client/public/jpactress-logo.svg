@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 170" role="img" aria-labelledby="jpactress-logo-title">
+  <title id="jpactress-logo-title">JPactress</title>
+  <defs>
+    <linearGradient id="mark-gradient" x1="43" x2="129" y1="145" y2="18" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#b00045"/>
+      <stop offset=".55" stop-color="#ff1f67"/>
+      <stop offset="1" stop-color="#ff3f86"/>
+    </linearGradient>
+    <linearGradient id="text-gradient" x1="147" x2="705" y1="49" y2="119" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff"/>
+      <stop offset=".55" stop-color="#efefef"/>
+      <stop offset=".73" stop-color="#ff2b70"/>
+      <stop offset="1" stop-color="#d8064c"/>
+    </linearGradient>
+    <filter id="pink-glow" x="-20%" y="-55%" width="140%" height="210%" color-interpolation-filters="sRGB">
+      <feFlood flood-color="#ff2a70" flood-opacity=".85"/>
+      <feComposite in2="SourceAlpha" operator="in"/>
+      <feGaussianBlur stdDeviation="18"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="soft-shadow" x="-8%" y="-15%" width="116%" height="130%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000" flood-opacity=".38"/>
+    </filter>
+  </defs>
+  <g filter="url(#pink-glow)" opacity=".55">
+    <ellipse cx="360" cy="95" rx="285" ry="48" fill="#ff2a70"/>
+  </g>
+  <g filter="url(#soft-shadow)">
+    <path fill="url(#mark-gradient)" stroke="#7b0832" stroke-width="1.5" d="M85 23h52c-6 57-16 92-32 113-17 22-44 35-83 39l-7-39c24-4 39-12 49-25 10-14 16-43 21-88Z"/>
+    <path fill="#ff2d70" stroke="#8c1438" stroke-width="1.5" d="m155 82-42 24 2-49 40 25Z"/>
+    <text x="130" y="118" fill="url(#text-gradient)" stroke="#393939" stroke-width="1.4" paint-order="stroke fill" font-family="Montserrat, Arial, Helvetica, sans-serif" font-size="96" font-style="italic" font-weight="800" letter-spacing="-5">Pactress</text>
+  </g>
+</svg>
