@@ -4,6 +4,10 @@ import { getActors } from '../services/api'
 import { getOptimizedImageSrcSet, getOptimizedImageUrl } from '../utils/image'
 import './Header.css'
 
+const buildMissavSearchUrl = (keyword) => (
+  `https://missav.ws/en/search/${encodeURIComponent(keyword.trim())}`
+)
+
 function Header({ user }) {
   const [query, setQuery] = useState('')
   const [allActors, setAllActors] = useState([])
@@ -28,7 +32,7 @@ function Header({ user }) {
           const merged = [...(asianRes.data || []), ...(europeanRes.data || [])]
           setAllActors(merged)
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) setAllActors([])
       } finally {
         if (!cancelled) setLoadingData(false)
@@ -57,7 +61,7 @@ function Header({ user }) {
         .slice(0, 8)
       setResults(items)
       setOpen(true)
-      setActiveIndex(items.length ? 0 : -1)
+      setActiveIndex(0)
     }, 120)
 
     return () => {
@@ -100,19 +104,36 @@ function Header({ user }) {
   }, [])
 
   const handleKeyDown = (event) => {
-    if (!open || (!results.length && event.key !== 'Escape')) return
+    const trimmed = query.trim()
+    const missavIndex = results.length
+    const optionCount = trimmed ? results.length + 1 : results.length
+
+    if (event.key === 'Enter' && trimmed && !open) {
+      event.preventDefault()
+      window.open(buildMissavSearchUrl(trimmed), '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    if (!open || (!optionCount && event.key !== 'Escape')) return
 
     if (event.key === 'ArrowDown') {
       event.preventDefault()
-      setActiveIndex((prev) => (prev + 1) % results.length)
+      setActiveIndex((prev) => (prev + 1) % optionCount)
     }
 
     if (event.key === 'ArrowUp') {
       event.preventDefault()
-      setActiveIndex((prev) => (prev - 1 + results.length) % results.length)
+      setActiveIndex((prev) => (prev - 1 + optionCount) % optionCount)
     }
 
     if (event.key === 'Enter' && activeIndex >= 0) {
+      event.preventDefault()
+      if (activeIndex === missavIndex && trimmed) {
+        window.open(buildMissavSearchUrl(trimmed), '_blank', 'noopener,noreferrer')
+        setOpen(false)
+        return
+      }
+
       const picked = results[activeIndex]
       if (picked?.profileLink) {
         const isExternal = picked.profileLink.startsWith('http')
@@ -133,6 +154,8 @@ function Header({ user }) {
     setOpen(false)
   }
 
+  const trimmedQuery = query.trim()
+  const missavSearchUrl = trimmedQuery ? buildMissavSearchUrl(trimmedQuery) : ''
   const adminPath = user ? '/admin' : '/login'
 
   return (
@@ -158,36 +181,54 @@ function Header({ user }) {
           />
           {open && (
             <div className="search-dropdown">
-              {loadingData ? (
+              {loadingData && (
                 <div className="search-status">Loading data...</div>
-              ) : query.trim() && results.length === 0 ? (
+              )}
+              {!loadingData && trimmedQuery && results.length === 0 && (
                 <div className="search-status">No actors found</div>
-              ) : !query.trim() ? (
+              )}
+              {!trimmedQuery ? (
                 <div className="search-status">Type a name to search</div>
               ) : (
-                results.map((actor, index) => (
+                <>
+                  {results.map((actor, index) => (
+                    <a
+                      key={actor._id}
+                      href={actor.profileLink}
+                      target={actor.profileLink?.startsWith('http') ? '_blank' : '_self'}
+                      rel="noreferrer"
+                      className={`search-item ${index === activeIndex ? 'active' : ''}`}
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onClick={handlePick}
+                    >
+                      <img
+                        src={getOptimizedImageUrl(actor.imageUrl, 160)}
+                        srcSet={getOptimizedImageSrcSet(actor.imageUrl, 80)}
+                        sizes="44px"
+                        alt={actor.name}
+                        loading="lazy"
+                      />
+                      <div className="search-item-content">
+                        <strong>{actor.name}</strong>
+                        <span>{actor.tags === 'asian' ? 'Asian' : 'European'}</span>
+                      </div>
+                    </a>
+                  ))}
                   <a
-                    key={actor._id}
-                    href={actor.profileLink}
-                    target={actor.profileLink?.startsWith('http') ? '_blank' : '_self'}
+                    href={missavSearchUrl}
+                    target="_blank"
                     rel="noreferrer"
-                    className={`search-item ${index === activeIndex ? 'active' : ''}`}
-                    onMouseEnter={() => setActiveIndex(index)}
+                    className={`search-item missav-search-item ${activeIndex === results.length ? 'active' : ''}`}
+                    onMouseEnter={() => setActiveIndex(results.length)}
                     onClick={handlePick}
                   >
-                    <img
-                      src={getOptimizedImageUrl(actor.imageUrl, 160)}
-                      srcSet={getOptimizedImageSrcSet(actor.imageUrl, 80)}
-                      sizes="44px"
-                      alt={actor.name}
-                      loading="lazy"
-                    />
+                    <span className="missav-search-icon">M</span>
                     <div className="search-item-content">
-                      <strong>{actor.name}</strong>
-                      <span>{actor.tags === 'asian' ? 'Asian' : 'European'}</span>
+                      <strong>Search MissAV</strong>
+                      <span>{trimmedQuery}</span>
                     </div>
                   </a>
-                ))
+                </>
               )}
             </div>
           )}

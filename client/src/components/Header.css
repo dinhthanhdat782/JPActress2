@@ -101,7 +101,6 @@
 .search-item:hover,
 .search-item.active {
   background: rgba(255, 79, 163, 0.16);
-  transform: translateX(3px);
 }
 
 .search-item img {
@@ -133,6 +132,25 @@
   font-size: 0.76rem;
   letter-spacing: 1px;
   text-transform: uppercase;
+}
+
+.missav-search-item {
+  background: rgba(255, 79, 163, 0.08);
+}
+
+.missav-search-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, rgba(255, 79, 163, 0.86), rgba(255, 178, 76, 0.82));
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
 }
 
 .header-nav {
