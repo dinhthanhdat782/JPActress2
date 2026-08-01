@@ -74,6 +74,20 @@ export const deleteActor = async (id) => {
   return response.data;
 };
 
+export const getRandomHistory = async (token) => {
+  const response = await axios.get(`${API_URL}/random-history`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const saveRandomHistory = async (token, history) => {
+  const response = await axios.put(`${API_URL}/random-history`, history, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
 export const createSeries = async (seriesData) => {
   const response = await axios.post(`${API_URL}/series`, seriesData, getAuthHeaders());
   return response.data;

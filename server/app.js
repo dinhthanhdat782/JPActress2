@@ -26,6 +26,7 @@ app.use(
 app.use(express.json());
 
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/random-history', require('./routes/randomHistoryRoutes'));
 app.use('/api/actors', require('./routes/actorRoutes'));
 app.use('/api/series', require('./routes/seriesRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));

@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getActors, getRandomActor, getSeries } from '../services/api'
+import { getActors, getRandomActor, getRandomHistory, getSeries, saveRandomHistory } from '../services/api'
 import { getOptimizedImageSrcSet, getOptimizedImageUrl } from '../utils/image'
 import './HomePage.css'
 
 const RANDOM_STORAGE_KEY = 'jpactress_random_state'
+
+const getAdminToken = () => {
+  try {
+    return JSON.parse(localStorage.getItem('user') || 'null')?.token || ''
+  } catch {
+    return ''
+  }
+}
 
 const createDefaultRandomState = () => ({
   selectedTag: '',
@@ -132,6 +140,39 @@ function HomePage() {
   const [hasStarted, setHasStarted] = useState(initialRandomState.hasStarted)
 
   const randomHistoriesRef = useRef(savedRandomHistories)
+  const serverHistoryLoadedRef = useRef(!getAdminToken())
+  const adminToken = getAdminToken()
+
+  useEffect(() => {
+    if (!adminToken) return
+
+    getRandomHistory(adminToken)
+      .then((response) => {
+        const serverState = response.data || {}
+        if (!response.data) {
+          return saveRandomHistory(adminToken, {
+            activeTag: selectedTag,
+            histories: randomHistoriesRef.current,
+          })
+        }
+
+        const histories = serverState.histories || {}
+        const activeTag = serverState.activeTag || ''
+        const activeState = histories[activeTag] || createDefaultRandomState()
+
+        randomHistoriesRef.current = histories
+        setSelectedTag(activeTag)
+        setRandomActor(activeState.randomActor || null)
+        setExcludeIds(Array.isArray(activeState.excludeIds) ? activeState.excludeIds : [])
+        setRemaining(activeState.remaining ?? null)
+        setNoMore(Boolean(activeState.noMore))
+        setHasStarted(Boolean(activeState.hasStarted))
+      })
+      .catch((error) => console.error('Error loading random history:', error))
+      .finally(() => {
+        serverHistoryLoadedRef.current = true
+      })
+  }, [adminToken])
 
   useEffect(() => {
     randomHistoriesRef.current[selectedTag] = {
@@ -146,7 +187,14 @@ function HomePage() {
       activeTag: selectedTag,
       histories: randomHistoriesRef.current,
     }))
-  }, [selectedTag, randomActor, excludeIds, remaining, noMore, hasStarted])
+
+    if (adminToken && serverHistoryLoadedRef.current) {
+      saveRandomHistory(adminToken, {
+        activeTag: selectedTag,
+        histories: randomHistoriesRef.current,
+      }).catch((error) => console.error('Error saving random history:', error))
+    }
+  }, [selectedTag, randomActor, excludeIds, remaining, noMore, hasStarted, adminToken])
 
   useEffect(() => {
     const loadHomeData = async () => {
