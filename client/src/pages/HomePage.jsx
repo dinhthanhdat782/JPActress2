@@ -1,8 +1,51 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getActors, getRandomActor, getSeries } from '../services/api'
 import { getOptimizedImageSrcSet, getOptimizedImageUrl } from '../utils/image'
 import './HomePage.css'
+
+const RANDOM_STORAGE_KEY = 'jpactress_random_state'
+
+const createDefaultRandomState = () => ({
+  selectedTag: '',
+  randomActor: null,
+  excludeIds: [],
+  remaining: null,
+  noMore: false,
+  hasStarted: false,
+})
+
+const loadRandomState = () => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(RANDOM_STORAGE_KEY) || 'null')
+    if (!saved || typeof saved !== 'object') {
+      return { activeTag: '', histories: { '': createDefaultRandomState() } }
+    }
+
+    // Keep compatibility with the previous single-history format.
+    if (!saved.histories) {
+      const activeTag = saved.selectedTag || ''
+      return {
+        activeTag,
+        histories: { [activeTag]: { ...createDefaultRandomState(), ...saved } },
+      }
+    }
+
+    return {
+      activeTag: saved.activeTag || '',
+      histories: Object.fromEntries(Object.entries(saved.histories).map(([tag, state]) => [
+        tag,
+        {
+          ...createDefaultRandomState(),
+          ...state,
+          excludeIds: Array.isArray(state.excludeIds) ? state.excludeIds : [],
+        },
+      ])),
+    }
+  } catch {
+    return { activeTag: '', histories: { '': createDefaultRandomState() } }
+  }
+}
 
 function ChevronLeft() {
   return (
@@ -67,6 +110,10 @@ function SectionRow({ title, actors, onPrev, onNext, expandTo, canPrev, canNext 
 
 function HomePage() {
   const createSeed = () => Date.now() + Math.floor(Math.random() * 1000000)
+  const [savedRandomState] = useState(loadRandomState)
+  const savedRandomHistories = savedRandomState.histories
+  const initialTag = savedRandomState.activeTag
+  const initialRandomState = savedRandomHistories[initialTag] || createDefaultRandomState()
 
   const [asianActors, setAsianActors] = useState([])
   const [europeanActors, setEuropeanActors] = useState([])
@@ -76,13 +123,30 @@ function HomePage() {
   const [seriesSeed, setSeriesSeed] = useState(() => createSeed())
   const [featuredIndex, setFeaturedIndex] = useState(0)
 
-  const [selectedTag, setSelectedTag] = useState('')
-  const [randomActor, setRandomActor] = useState(null)
+  const [selectedTag, setSelectedTag] = useState(initialTag)
+  const [randomActor, setRandomActor] = useState(initialRandomState.randomActor)
   const [loadingRandom, setLoadingRandom] = useState(false)
-  const [excludeIds, setExcludeIds] = useState([])
-  const [remaining, setRemaining] = useState(null)
-  const [noMore, setNoMore] = useState(false)
-  const [hasStarted, setHasStarted] = useState(false)
+  const [excludeIds, setExcludeIds] = useState(initialRandomState.excludeIds)
+  const [remaining, setRemaining] = useState(initialRandomState.remaining)
+  const [noMore, setNoMore] = useState(initialRandomState.noMore)
+  const [hasStarted, setHasStarted] = useState(initialRandomState.hasStarted)
+
+  const randomHistoriesRef = useRef(savedRandomHistories)
+
+  useEffect(() => {
+    randomHistoriesRef.current[selectedTag] = {
+      selectedTag,
+      randomActor,
+      excludeIds,
+      remaining,
+      noMore,
+      hasStarted,
+    }
+    localStorage.setItem(RANDOM_STORAGE_KEY, JSON.stringify({
+      activeTag: selectedTag,
+      histories: randomHistoriesRef.current,
+    }))
+  }, [selectedTag, randomActor, excludeIds, remaining, noMore, hasStarted])
 
   useEffect(() => {
     const loadHomeData = async () => {
@@ -143,11 +207,22 @@ function HomePage() {
   }, [featuredPool])
 
   const handleTagChange = (tag) => {
+    const nextState = randomHistoriesRef.current[tag] || createDefaultRandomState()
+    randomHistoriesRef.current[selectedTag] = {
+      selectedTag,
+      randomActor,
+      excludeIds,
+      remaining,
+      noMore,
+      hasStarted,
+    }
+
     setSelectedTag(tag)
-    setRandomActor(null)
-    setExcludeIds([])
-    setRemaining(null)
-    setNoMore(false)
+    setRandomActor(nextState.randomActor)
+    setExcludeIds(nextState.excludeIds)
+    setRemaining(nextState.remaining)
+    setNoMore(nextState.noMore)
+    setHasStarted(nextState.hasStarted)
   }
 
   const handleResetRandom = () => {
