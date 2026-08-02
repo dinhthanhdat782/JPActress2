@@ -168,7 +168,12 @@ function HomePage() {
         setNoMore(Boolean(activeState.noMore))
         setHasStarted(Boolean(activeState.hasStarted))
       })
-      .catch((error) => console.error('Error loading random history:', error))
+      .catch((error) => {
+        // A stale JWT must not cause the locally cached random state to be deleted.
+        if (error.response?.status !== 401) {
+          console.error('Error loading random history:', error)
+        }
+      })
       .finally(() => {
         serverHistoryLoadedRef.current = true
       })

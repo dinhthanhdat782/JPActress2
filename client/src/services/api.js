@@ -2,6 +2,27 @@ import axios from 'axios';
 
 const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
 
+// localStorage can outlive the JWT. Keep the UI and the server auth state in sync.
+const expireAuthSession = (config = {}) => {
+  const url = config.url || '';
+  if (url.includes('/auth/login')) return;
+
+  if (localStorage.getItem('user')) {
+    localStorage.removeItem('user');
+    window.dispatchEvent(new Event('auth:expired'));
+  }
+};
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      expireAuthSession(error.config);
+    }
+    return Promise.reject(error);
+  }
+);
+
 // ========== Actor API (Public) ==========
 export const getActors = async (page = 1, limit = 12, tags = '', query = '') => {
   const params = { page, limit };

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { getMe } from './services/api'
 import Header from './components/Header'
 import HomePage from './pages/HomePage'
 import AsianPage from './pages/AsianPage'
@@ -15,9 +16,34 @@ function App() {
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user')
-    if (savedUser) {
-      setUser(JSON.parse(savedUser))
+    if (!savedUser) return
+
+    let cancelled = false
+    const validateSession = async () => {
+      try {
+        const parsedUser = JSON.parse(savedUser)
+        const response = await getMe(parsedUser.token)
+        if (!cancelled) {
+          setUser({ ...parsedUser, ...response.data })
+        }
+      } catch {
+        if (!cancelled) {
+          localStorage.removeItem('user')
+          setUser(null)
+        }
+      }
     }
+
+    validateSession()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleExpiredAuth = () => setUser(null)
+    window.addEventListener('auth:expired', handleExpiredAuth)
+    return () => window.removeEventListener('auth:expired', handleExpiredAuth)
   }, [])
 
   const handleLogin = (userData) => {
