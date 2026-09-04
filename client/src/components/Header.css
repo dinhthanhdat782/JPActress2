@@ -192,6 +192,96 @@
   display: none;
 }
 
+.admin-menu {
+  position: relative;
+}
+
+.mobile-admin-menu {
+  display: none;
+}
+
+.admin-menu-trigger {
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.header-nav .desktop-admin-link {
+  position: relative;
+  padding: 0;
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.header-nav .desktop-admin-link::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -4px;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--dur-fast) var(--ease-smooth);
+}
+
+.header-nav .desktop-admin-link:hover {
+  color: var(--accent);
+}
+
+.header-nav .desktop-admin-link:hover::after,
+.header-nav .desktop-admin-link[aria-expanded='true']::after {
+  transform: scaleX(1);
+}
+
+.admin-dropdown {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: 0;
+  min-width: 160px;
+  padding: 6px;
+  border: 1px solid rgba(255, 79, 163, 0.3);
+  border-radius: 14px;
+  background: rgba(18, 18, 18, 0.97);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  animation: fadeInUp var(--dur-fast) var(--ease-smooth);
+  z-index: 40;
+}
+
+.admin-dropdown a,
+.admin-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.header-nav .admin-dropdown a::after {
+  display: none;
+}
+
+.admin-dropdown a:hover,
+.admin-dropdown button:hover {
+  background: rgba(255, 79, 163, 0.16);
+  color: var(--text-primary);
+}
+
+.admin-dropdown button:last-child {
+  color: #ff8fbd;
+}
+
 @media (max-width: 768px) {
   .header {
     padding: 10px 14px 9px;
@@ -243,6 +333,15 @@
     letter-spacing: 0.7px;
   }
 
+  .mobile-admin-menu {
+    display: block;
+  }
+
+  .mobile-admin-menu .admin-dropdown {
+    top: calc(100% + 8px);
+    right: 0;
+  }
+
   .header-search {
     grid-column: 1 / -1;
     width: 100%;
@@ -285,6 +384,10 @@
   }
 
   .desktop-admin-link {
+    display: none;
+  }
+
+  .desktop-admin-menu {
     display: none;
   }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { getMe } from './services/api'
 import Header from './components/Header'
 import HomePage from './pages/HomePage'
@@ -8,8 +8,20 @@ import EuropeanPage from './pages/EuropeanPage'
 import SeriesPage from './pages/SeriesPage'
 import LoginPage from './pages/LoginPage'
 import AdminPage from './pages/AdminPage'
+import FavoritesPage from './pages/FavoritesPage'
+import HistoryPage from './pages/HistoryPage'
 import Footer from './components/Footer'
 import './App.css'
+
+function ScrollToTop() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+  }, [pathname])
+
+  return null
+}
 
 function App() {
   const [user, setUser] = useState(null)
@@ -51,13 +63,15 @@ function App() {
   }
 
   const handleLogout = () => {
+    localStorage.removeItem('user')
     setUser(null)
   }
 
   return (
     <Router>
+      <ScrollToTop />
       <div className="app">
-        <Header user={user} />
+        <Header user={user} onLogout={handleLogout} />
         <main className="main-content">
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -65,6 +79,8 @@ function App() {
             <Route path="/europian" element={<EuropeanPage />} />
             <Route path="/european" element={<EuropeanPage />} />
             <Route path="/series" element={<SeriesPage />} />
+            <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/history" element={<HistoryPage />} />
             <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
             <Route path="/admin" element={<AdminPage user={user} onLogout={handleLogout} />} />
           </Routes>

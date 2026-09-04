@@ -95,6 +95,11 @@ export const deleteActor = async (id) => {
   return response.data;
 };
 
+export const getActressOfTheDay = async () => {
+  const response = await axios.get(`${API_URL}/actors/actress-of-the-day`);
+  return response.data;
+};
+
 export const getRandomHistory = async (token) => {
   const response = await axios.get(`${API_URL}/random-history`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -106,6 +111,36 @@ export const saveRandomHistory = async (token, history) => {
   const response = await axios.put(`${API_URL}/random-history`, history, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  return response.data;
+};
+
+export const getFavorites = async () => {
+  const response = await axios.get(`${API_URL}/favorites`, getAuthHeaders());
+  return response.data;
+};
+
+export const toggleFavorite = async (type, id) => {
+  const response = await axios.post(`${API_URL}/favorites/toggle`, { type, id }, getAuthHeaders());
+  return response.data;
+};
+
+export const getHistory = async (limit = 50) => {
+  const response = await axios.get(`${API_URL}/history`, { ...getAuthHeaders(), params: { limit } });
+  return response.data;
+};
+
+export const recordHistory = async (type, id, action) => {
+  const response = await axios.post(`${API_URL}/history`, { type, id, action }, getAuthHeaders());
+  return response.data;
+};
+
+export const clearHistory = async () => {
+  const response = await axios.delete(`${API_URL}/history`, getAuthHeaders());
+  return response.data;
+};
+
+export const getAdminAnalytics = async () => {
+  const response = await axios.get(`${API_URL}/admin/analytics`, getAuthHeaders());
   return response.data;
 };
 

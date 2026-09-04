@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   getActors,
   getActor,
+  getActressOfTheDay,
   createActor,
   updateActor,
   deleteActor,
@@ -12,6 +13,7 @@ const { protect, adminOnly } = require('../middleware/auth');
 
 // Public routes
 router.route('/random').get(getRandomActor);
+router.route('/actress-of-the-day').get(getActressOfTheDay);
 router.route('/').get(getActors);
 router.route('/:id').get(getActor);
 

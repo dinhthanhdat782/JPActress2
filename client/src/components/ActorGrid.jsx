@@ -1,14 +1,10 @@
 import ActorCard from './ActorCard'
+import LoadingGrid from './LoadingGrid'
 import './ActorGrid.css'
 
 function ActorGrid({ actors, loading }) {
   if (loading) {
-    return (
-      <div className="loading">
-        <div className="loading-spinner"></div>
-        <p>Loading talent...</p>
-      </div>
-    )
+    return <LoadingGrid count={12} label="Loading talent..." />
   }
 
   if (actors.length === 0) {

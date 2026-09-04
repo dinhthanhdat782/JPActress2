@@ -6,6 +6,12 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px;
+  scrollbar-gutter: stable;
+}
+
 :root {
   --bg-primary: #0d0d0d;
   --bg-secondary: #121212;
@@ -28,11 +34,13 @@ body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
+  overflow-x: hidden;
   min-height: 100vh;
   background-image:
     radial-gradient(900px 500px at 15% -20%, rgba(233, 30, 99, 0.15), transparent 60%),
     radial-gradient(700px 450px at 90% -5%, rgba(37, 171, 2, 0.12), transparent 60%);
-  background-attachment: fixed;
+  /* A scrolling background avoids a full-page repaint on every scroll frame. */
+  background-attachment: scroll;
 }
 
 a {
@@ -94,5 +102,11 @@ a {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 768px) {
+  html {
+    scroll-padding-top: 132px;
   }
 }

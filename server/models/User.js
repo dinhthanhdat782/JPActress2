@@ -18,6 +18,14 @@ const userSchema = new mongoose.Schema(
       enum: ['admin', 'user'],
       default: 'admin',
     },
+    favoriteActors: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Actor',
+    }],
+    favoriteSeries: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Series',
+    }],
   },
   {
     timestamps: true,

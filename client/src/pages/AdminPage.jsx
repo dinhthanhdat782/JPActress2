@@ -12,6 +12,7 @@ import {
 } from '../services/api'
 import ActorModal from '../components/ActorModal'
 import SeriesModal from '../components/SeriesModal'
+import AnalyticsPanel from '../components/AnalyticsPanel'
 import './AdminPage.css'
 
 function AdminPage({ user, onLogout }) {
@@ -180,6 +181,7 @@ function AdminPage({ user, onLogout }) {
 
   return (
     <div className="admin-page">
+      <AnalyticsPanel />
       <div className="admin-header">
         <div>
           <h2>ADMIN DASHBOARD</h2>

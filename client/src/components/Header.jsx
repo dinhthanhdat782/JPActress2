@@ -8,7 +8,7 @@ const buildMissavSearchUrl = (keyword) => (
   `https://missav.ws/en/search/${encodeURIComponent(keyword.trim())}`
 )
 
-function Header({ user }) {
+function Header({ user, onLogout }) {
   const [query, setQuery] = useState('')
   const [allActors, setAllActors] = useState([])
   const [results, setResults] = useState([])
@@ -18,6 +18,7 @@ function Header({ user }) {
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const searchRef = useRef(null)
   const lastScrollYRef = useRef(0)
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -78,6 +79,24 @@ function Header({ user }) {
 
     document.addEventListener('mousedown', onClickOutside)
     return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  useEffect(() => {
+    const closeAdminMenu = (event) => {
+      if (!event.target.closest?.('.admin-menu')) {
+        setIsAdminMenuOpen(false)
+      }
+    }
+    const closeAdminMenuOnEscape = (event) => {
+      if (event.key === 'Escape') setIsAdminMenuOpen(false)
+    }
+
+    document.addEventListener('mousedown', closeAdminMenu)
+    document.addEventListener('keydown', closeAdminMenuOnEscape)
+    return () => {
+      document.removeEventListener('mousedown', closeAdminMenu)
+      document.removeEventListener('keydown', closeAdminMenuOnEscape)
+    }
   }, [])
 
   useEffect(() => {
@@ -154,6 +173,11 @@ function Header({ user }) {
     setOpen(false)
   }
 
+  const handleLogoutClick = () => {
+    setIsAdminMenuOpen(false)
+    onLogout()
+  }
+
   const trimmedQuery = query.trim()
   const missavSearchUrl = trimmedQuery ? buildMissavSearchUrl(trimmedQuery) : ''
   const adminPath = user ? '/admin' : '/login'
@@ -165,7 +189,25 @@ function Header({ user }) {
           <img src="/jpactress-logo.svg" alt="JPactress" className="logo-image" />
         </Link>
 
-        <Link to={adminPath} className="mobile-admin-link">ADMIN</Link>
+        <div className="admin-menu mobile-admin-menu">
+          <button
+            type="button"
+            className="mobile-admin-link admin-menu-trigger"
+            aria-expanded={isAdminMenuOpen}
+            aria-haspopup="menu"
+            onClick={() => setIsAdminMenuOpen((isOpen) => !isOpen)}
+          >
+            ADMIN
+          </button>
+          {isAdminMenuOpen && (
+            <div className="admin-dropdown" role="menu">
+              <Link to={adminPath} role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>ADMIN</Link>
+              <Link to="/favorites" role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>FAVORITES</Link>
+              <Link to="/history" role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>HISTORY</Link>
+              <button type="button" role="menuitem" onClick={handleLogoutClick}>LOGOUT</button>
+            </div>
+          )}
+        </div>
 
         <div className="header-search" ref={searchRef}>
           <input
@@ -242,7 +284,25 @@ function Header({ user }) {
           <Link to="https://missav.ws/dm223/en" target="_blank" rel="noreferrer">MISSAV</Link>
           <Link to="https://beeg.com/" target="_blank" rel="noreferrer">BEEG</Link>
 
-          <Link to={adminPath} className="desktop-admin-link">ADMIN</Link>
+          <div className="admin-menu desktop-admin-menu">
+            <button
+              type="button"
+              className="desktop-admin-link admin-menu-trigger"
+              aria-expanded={isAdminMenuOpen}
+              aria-haspopup="menu"
+              onClick={() => setIsAdminMenuOpen((isOpen) => !isOpen)}
+            >
+              ADMIN
+            </button>
+            {isAdminMenuOpen && (
+              <div className="admin-dropdown" role="menu">
+                <Link to={adminPath} role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>ADMIN</Link>
+                <Link to="/favorites" role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>FAVORITES</Link>
+                <Link to="/history" role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>HISTORY</Link>
+                <button type="button" role="menuitem" onClick={handleLogoutClick}>LOGOUT</button>
+              </div>
+            )}
+          </div>
         </nav>
       </div>
     </header>

@@ -1,0 +1,23 @@
+.favorites-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.favorites-section { margin-top: 38px; }
+.favorites-section h3 { margin-bottom: 18px; }
+.favorites-subsection { margin-top: 24px; }
+.favorites-subsection h4 { margin-bottom: 14px; color: var(--text-secondary); font-size: .8rem; letter-spacing: 1.4px; }
+.favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+}
+.favorites-empty { color: var(--text-muted); }
+.favorites-back { display: inline-block; margin-top: 42px; color: var(--accent); }
+
+@media (max-width: 1200px) { .favorites-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 768px) {
+  .favorites-page { padding: 32px 16px 60px; }
+  .favorites-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+}

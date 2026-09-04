@@ -27,6 +27,9 @@ app.use(express.json());
 
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/random-history', require('./routes/randomHistoryRoutes'));
+app.use('/api/favorites', require('./routes/favoriteRoutes'));
+app.use('/api/history', require('./routes/historyRoutes'));
+app.use('/api/admin/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/actors', require('./routes/actorRoutes'));
 app.use('/api/series', require('./routes/seriesRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));

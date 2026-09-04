@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getActors, getRandomActor, getRandomHistory, getSeries, saveRandomHistory } from '../services/api'
+import { getActors, getActressOfTheDay, getFavorites, getRandomActor, getRandomHistory, getSeries, recordHistory, saveRandomHistory } from '../services/api'
 import { getOptimizedImageSrcSet, getOptimizedImageUrl } from '../utils/image'
+import FavoriteButton from '../components/FavoriteButton'
 import './HomePage.css'
 
 const RANDOM_STORAGE_KEY = 'jpactress_random_state'
@@ -12,6 +13,10 @@ const getAdminToken = () => {
   } catch {
     return ''
   }
+}
+
+const trackHistory = (type, id, action) => {
+  if (getAdminToken()) recordHistory(type, id, action).catch(() => {})
 }
 
 const createDefaultRandomState = () => ({
@@ -71,7 +76,7 @@ function ChevronRight() {
   )
 }
 
-function SectionRow({ title, actors, onPrev, onNext, expandTo, canPrev, canNext }) {
+function SectionRow({ title, actors, itemType, favoriteIds, onPrev, onNext, expandTo, canPrev, canNext }) {
   return (
     <section className="home-section">
       <div className="home-section-head">
@@ -92,8 +97,10 @@ function SectionRow({ title, actors, onPrev, onNext, expandTo, canPrev, canNext 
               className="wire-card"
               target={actor.profileLink?.startsWith('http') ? '_blank' : '_self'}
               rel="noreferrer"
+              onClick={() => trackHistory(itemType, actor._id, 'view')}
             >
               <div className="wire-image-wrap">
+                <FavoriteButton type={itemType} id={actor._id} initialFavorite={favoriteIds.has(actor._id)} />
                 <img
                   src={getOptimizedImageUrl(actor.imageUrl, 640)}
                   srcSet={getOptimizedImageSrcSet(actor.imageUrl, 320)}
@@ -126,6 +133,9 @@ function HomePage() {
   const [asianActors, setAsianActors] = useState([])
   const [europeanActors, setEuropeanActors] = useState([])
   const [seriesList, setSeriesList] = useState([])
+  const [favoriteActorIds, setFavoriteActorIds] = useState(new Set())
+  const [favoriteSeriesIds, setFavoriteSeriesIds] = useState(new Set())
+  const [actressOfTheDay, setActressOfTheDay] = useState(null)
   const [asianSeed, setAsianSeed] = useState(() => createSeed())
   const [euroSeed, setEuroSeed] = useState(() => createSeed())
   const [seriesSeed, setSeriesSeed] = useState(() => createSeed())
@@ -204,19 +214,45 @@ function HomePage() {
   useEffect(() => {
     const loadHomeData = async () => {
       try {
-        const [asianRes, euroRes, seriesRes] = await Promise.all([
+        const [asianRes, euroRes, seriesRes, dailyRes] = await Promise.all([
           getActors(1, 30, 'asian'),
           getActors(1, 30, 'european'),
           getSeries(1, 30),
+          getActressOfTheDay(),
         ])
         setAsianActors(asianRes.data || [])
         setEuropeanActors(euroRes.data || [])
         setSeriesList(seriesRes.data || [])
+        setActressOfTheDay(dailyRes.data || null)
       } catch (error) {
         console.error('Error loading homepage data:', error)
       }
     }
     loadHomeData()
+  }, [])
+
+  useEffect(() => {
+    if (!getAdminToken()) {
+      setFavoriteActorIds(new Set())
+      setFavoriteSeriesIds(new Set())
+      return undefined
+    }
+
+    let cancelled = false
+    getFavorites()
+      .then((response) => {
+        if (cancelled) return
+        setFavoriteActorIds(new Set((response.data?.actors || []).map((item) => item._id)))
+        setFavoriteSeriesIds(new Set((response.data?.series || []).map((item) => item._id)))
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFavoriteActorIds(new Set())
+          setFavoriteSeriesIds(new Set())
+        }
+      })
+
+    return () => { cancelled = true }
   }, [])
 
   const pickRandomSix = (actors, seed) => {
@@ -303,6 +339,7 @@ function HomePage() {
         const pickedSeries = availableSeries[Math.floor(Math.random() * availableSeries.length)]
         const nextExcludeIds = [...excludeIds, pickedSeries._id]
         setRandomActor(pickedSeries)
+        trackHistory('series', pickedSeries._id, 'random')
         setExcludeIds(nextExcludeIds)
         setRemaining(seriesList.length - nextExcludeIds.length)
         return
@@ -317,6 +354,7 @@ function HomePage() {
       }
 
       setRandomActor(data.data)
+      trackHistory('actor', data.data._id, 'random')
       setRemaining(data.remaining)
       setExcludeIds((prev) => [...prev, data.data._id])
     } catch (error) {
@@ -348,6 +386,7 @@ function HomePage() {
             </div>
             <div className="hero-content">
               <div className="hero-portrait">
+                <FavoriteButton type="actor" id={featuredActor._id} initialFavorite={favoriteActorIds.has(featuredActor._id)} />
                 <img
                   src={getOptimizedImageUrl(featuredActor.imageUrl, 420)}
                   srcSet={getOptimizedImageSrcSet(featuredActor.imageUrl, 210)}
@@ -372,9 +411,46 @@ function HomePage() {
         </section>
       )}
 
+      {actressOfTheDay && (
+        <section className="daily-wire">
+          <div className="daily-copy">
+            <span className="daily-badge">Daily spotlight</span>
+            <h2>Actress of the Day</h2>
+            <p>A new featured talent every day, selected from the JPactress directory.</p>
+            <a
+              href={actressOfTheDay.profileLink}
+              target={actressOfTheDay.profileLink?.startsWith('http') ? '_blank' : '_self'}
+              rel="noreferrer"
+              className="daily-cta"
+              onClick={() => trackHistory('actor', actressOfTheDay._id, 'view')}
+            >
+              Explore profile
+            </a>
+          </div>
+          <a
+            href={actressOfTheDay.profileLink}
+            target={actressOfTheDay.profileLink?.startsWith('http') ? '_blank' : '_self'}
+            rel="noreferrer"
+            className="daily-portrait"
+            onClick={() => trackHistory('actor', actressOfTheDay._id, 'view')}
+          >
+            <FavoriteButton type="actor" id={actressOfTheDay._id} initialFavorite={favoriteActorIds.has(actressOfTheDay._id)} />
+            <img
+              src={getOptimizedImageUrl(actressOfTheDay.imageUrl, 520)}
+              srcSet={getOptimizedImageSrcSet(actressOfTheDay.imageUrl, 260)}
+              sizes="180px"
+              alt={actressOfTheDay.name}
+            />
+            <span>{actressOfTheDay.name}</span>
+          </a>
+        </section>
+      )}
+
       <SectionRow
         title="Asian"
         actors={asianVisible}
+        itemType="actor"
+        favoriteIds={favoriteActorIds}
         onPrev={() => rerandomize(setAsianSeed)}
         onNext={() => rerandomize(setAsianSeed)}
         expandTo="/asian"
@@ -385,6 +461,8 @@ function HomePage() {
       <SectionRow
         title="European"
         actors={euroVisible}
+        itemType="actor"
+        favoriteIds={favoriteActorIds}
         onPrev={() => rerandomize(setEuroSeed)}
         onNext={() => rerandomize(setEuroSeed)}
         expandTo="/europian"
@@ -395,6 +473,8 @@ function HomePage() {
       <SectionRow
         title="Series"
         actors={seriesVisible}
+        itemType="series"
+        favoriteIds={favoriteSeriesIds}
         onPrev={() => rerandomize(setSeriesSeed)}
         onNext={() => rerandomize(setSeriesSeed)}
         expandTo="/series"
@@ -429,9 +509,15 @@ function HomePage() {
                 href={randomActor.profileLink}
                 target={randomActor.profileLink?.startsWith('http') ? '_blank' : '_self'}
                 rel="noreferrer"
+                onClick={() => trackHistory(selectedTag === 'series' ? 'series' : 'actor', randomActor._id, 'view')}
                 className="random-card-link"
               >
                 <div className="random-card-image-wrap">
+                  <FavoriteButton
+                    type={selectedTag === 'series' ? 'series' : 'actor'}
+                    id={randomActor._id}
+                    initialFavorite={selectedTag === 'series' ? favoriteSeriesIds.has(randomActor._id) : favoriteActorIds.has(randomActor._id)}
+                  />
                   <img
                     src={getOptimizedImageUrl(randomActor.imageUrl, 520)}
                     srcSet={getOptimizedImageSrcSet(randomActor.imageUrl, 260)}

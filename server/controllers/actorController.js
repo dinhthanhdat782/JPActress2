@@ -51,6 +51,23 @@ const getActor = async (req, res) => {
   }
 };
 
+// @desc    Get the same featured actress for everyone during the current UTC day
+// @route   GET /api/actors/actress-of-the-day
+const getActressOfTheDay = async (req, res) => {
+  try {
+    const total = await Actor.countDocuments();
+    if (!total) return res.json({ success: true, data: null });
+
+    const dayKey = new Date().toISOString().slice(0, 10);
+    const dayNumber = Number(dayKey.replaceAll('-', ''));
+    const actor = await Actor.findOne().sort({ name: 1 }).skip(dayNumber % total);
+
+    res.json({ success: true, data: actor, date: dayKey });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // @desc    Create actor
 // @route   POST /api/actors
 const createActor = async (req, res) => {
@@ -152,4 +169,4 @@ const getRandomActor = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-module.exports = { getActors, getActor, createActor, updateActor, deleteActor, getRandomActor };
+module.exports = { getActors, getActor, getActressOfTheDay, createActor, updateActor, deleteActor, getRandomActor };
