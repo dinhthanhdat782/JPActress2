@@ -180,7 +180,6 @@ function Header({ user, onLogout }) {
 
   const trimmedQuery = query.trim()
   const missavSearchUrl = trimmedQuery ? buildMissavSearchUrl(trimmedQuery) : ''
-  const adminPath = user ? '/admin' : '/login'
 
   return (
     <header className={`header ${isHeaderVisible ? 'header-visible' : 'header-hidden'}`}>
@@ -190,18 +189,22 @@ function Header({ user, onLogout }) {
         </Link>
 
         <div className="admin-menu mobile-admin-menu">
-          <button
-            type="button"
-            className="mobile-admin-link admin-menu-trigger"
-            aria-expanded={isAdminMenuOpen}
-            aria-haspopup="menu"
-            onClick={() => setIsAdminMenuOpen((isOpen) => !isOpen)}
-          >
-            ADMIN
-          </button>
-          {isAdminMenuOpen && (
+          {user ? (
+            <button
+              type="button"
+              className="mobile-admin-link admin-menu-trigger"
+              aria-expanded={isAdminMenuOpen}
+              aria-haspopup="menu"
+              onClick={() => setIsAdminMenuOpen((isOpen) => !isOpen)}
+            >
+              ADMIN
+            </button>
+          ) : (
+            <Link to="/login" className="mobile-admin-link">SIGN IN</Link>
+          )}
+          {user && isAdminMenuOpen && (
             <div className="admin-dropdown" role="menu">
-              <Link to={adminPath} role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>ADMIN</Link>
+              <Link to="/admin" role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>ADMIN</Link>
               <Link to="/favorites" role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>FAVORITES</Link>
               <Link to="/history" role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>HISTORY</Link>
               <button type="button" role="menuitem" onClick={handleLogoutClick}>LOGOUT</button>
@@ -285,18 +288,22 @@ function Header({ user, onLogout }) {
           <Link to="https://beeg.com/" target="_blank" rel="noreferrer">BEEG</Link>
 
           <div className="admin-menu desktop-admin-menu">
-            <button
-              type="button"
-              className="desktop-admin-link admin-menu-trigger"
-              aria-expanded={isAdminMenuOpen}
-              aria-haspopup="menu"
-              onClick={() => setIsAdminMenuOpen((isOpen) => !isOpen)}
-            >
-              ADMIN
-            </button>
-            {isAdminMenuOpen && (
+            {user ? (
+              <button
+                type="button"
+                className="desktop-admin-link admin-menu-trigger"
+                aria-expanded={isAdminMenuOpen}
+                aria-haspopup="menu"
+                onClick={() => setIsAdminMenuOpen((isOpen) => !isOpen)}
+              >
+                ADMIN
+              </button>
+            ) : (
+              <Link to="/login" className="desktop-admin-link">SIGN IN</Link>
+            )}
+            {user && isAdminMenuOpen && (
               <div className="admin-dropdown" role="menu">
-                <Link to={adminPath} role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>ADMIN</Link>
+                <Link to="/admin" role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>ADMIN</Link>
                 <Link to="/favorites" role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>FAVORITES</Link>
                 <Link to="/history" role="menuitem" onClick={() => setIsAdminMenuOpen(false)}>HISTORY</Link>
                 <button type="button" role="menuitem" onClick={handleLogoutClick}>LOGOUT</button>

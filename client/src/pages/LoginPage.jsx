@@ -19,7 +19,7 @@ function LoginPage({ onLogin }) {
       const data = await loginAdmin(username, password)
       localStorage.setItem('user', JSON.stringify(data.data))
       onLogin(data.data)
-      navigate('/admin')
+      navigate('/', { replace: true })
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed')
     }

@@ -73,6 +73,12 @@
   object-position: center top;
 }
 
+.hero-portrait .favorite-button {
+  top: 8px;
+  right: auto;
+  left: 8px;
+}
+
 .hero-copy {
   display: flex;
   flex-direction: column;
