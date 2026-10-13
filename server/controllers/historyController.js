@@ -1,16 +1,17 @@
 const mongoose = require('mongoose');
 const Actor = require('../models/Actor');
 const Series = require('../models/Series');
+const Category = require('../models/Category');
 const ActivityHistory = require('../models/ActivityHistory');
 
 const recordHistory = async (req, res) => {
   try {
     const { type, id, action } = req.body;
-    if (!['actor', 'series'].includes(type) || !mongoose.isValidObjectId(id) || !['view', 'random'].includes(action)) {
+    if (!['actor', 'series', 'category'].includes(type) || !mongoose.isValidObjectId(id) || !['view', 'random'].includes(action)) {
       return res.status(400).json({ success: false, message: 'Invalid history data' });
     }
 
-    const Model = type === 'actor' ? Actor : Series;
+    const Model = type === 'actor' ? Actor : type === 'series' ? Series : Category;
     const item = await Model.findById(id).select('_id');
     if (!item) return res.status(404).json({ success: false, message: 'History item not found' });
 
@@ -18,6 +19,7 @@ const recordHistory = async (req, res) => {
       user: req.user._id,
       actor: type === 'actor' ? id : null,
       series: type === 'series' ? id : null,
+      category: type === 'category' ? id : null,
       action,
     });
 
@@ -35,6 +37,7 @@ const getHistory = async (req, res) => {
       .limit(limit)
       .populate('actor')
       .populate('series')
+      .populate('category')
       .lean();
 
     res.json({ success: true, data: history });

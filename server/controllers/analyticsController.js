@@ -1,5 +1,6 @@
 const Actor = require('../models/Actor');
 const Series = require('../models/Series');
+const Category = require('../models/Category');
 const User = require('../models/User');
 const ActivityHistory = require('../models/ActivityHistory');
 
@@ -9,18 +10,20 @@ const getAdminAnalytics = async (req, res) => {
     since.setUTCDate(since.getUTCDate() - 6);
     since.setUTCHours(0, 0, 0, 0);
 
-    const [actorCount, seriesCount, userCount, views, randomPicks, favoriteTotals, recentActors, recentSeries, dailyActivity, topActors] = await Promise.all([
+    const [actorCount, seriesCount, categoryCount, userCount, views, randomPicks, favoriteTotals, recentActors, recentSeries, recentCategories, dailyActivity, topActors] = await Promise.all([
       Actor.countDocuments(),
       Series.countDocuments(),
+      Category.countDocuments(),
       User.countDocuments(),
       ActivityHistory.countDocuments({ action: 'view' }),
       ActivityHistory.countDocuments({ action: 'random' }),
       User.aggregate([
-        { $project: { total: { $add: [{ $size: { $ifNull: ['$favoriteActors', []] } }, { $size: { $ifNull: ['$favoriteSeries', []] } }] } } },
+        { $project: { total: { $add: [{ $size: { $ifNull: ['$favoriteActors', []] } }, { $size: { $ifNull: ['$favoriteSeries', []] } }, { $size: { $ifNull: ['$favoriteCategories', []] } }] } } },
         { $group: { _id: null, total: { $sum: '$total' } } },
       ]),
       Actor.countDocuments({ createdAt: { $gte: since } }),
       Series.countDocuments({ createdAt: { $gte: since } }),
+      Category.countDocuments({ createdAt: { $gte: since } }),
       ActivityHistory.aggregate([
         { $match: { createdAt: { $gte: since } } },
         { $group: { _id: { day: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, action: '$action' }, count: { $sum: 1 } } },
@@ -43,12 +46,14 @@ const getAdminAnalytics = async (req, res) => {
         totals: {
           actors: actorCount,
           series: seriesCount,
+          categories: categoryCount,
           users: userCount,
           views,
           randomPicks,
           favorites: favoriteTotals[0]?.total || 0,
           recentActors,
           recentSeries,
+          recentCategories,
         },
         dailyActivity,
         topActors,

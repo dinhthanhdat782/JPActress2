@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getActors, getFavorites, getSeries, recordHistory } from '../services/api'
+import { getActors, getFavorites, getSeries, getCategories, recordHistory } from '../services/api'
 import { getOptimizedImageSrcSet, getOptimizedImageUrl } from '../utils/image'
 import FavoriteButton from '../components/FavoriteButton'
 import LoadingGrid from '../components/LoadingGrid'
@@ -17,7 +17,7 @@ function CategoryPage({ title, tag, type = 'actors' }) {
   const trackView = (id) => {
     try {
       if (JSON.parse(localStorage.getItem('user') || 'null')?.token) {
-        recordHistory(type === 'series' ? 'series' : 'actor', id, 'view').catch(() => {})
+        recordHistory(type === 'series' ? 'series' : type === 'category' ? 'category' : 'actor', id, 'view').catch(() => {})
       }
     } catch {
       // Ignore malformed local session data.
@@ -30,7 +30,9 @@ function CategoryPage({ title, tag, type = 'actors' }) {
       try {
         const data = type === 'series'
           ? await getSeries(page, 24, tag)
-          : await getActors(page, 24, tag)
+          : type === 'category'
+            ? await getCategories(page, 24, tag)
+            : await getActors(page, 24, tag)
         setItems((previous) => (replace ? (data.data || []) : [...previous, ...(data.data || [])]))
         setCurrentPage(page)
         setTotalPages(data.totalPages || 1)
@@ -80,7 +82,7 @@ function CategoryPage({ title, tag, type = 'actors' }) {
     getFavorites()
       .then((response) => {
         if (cancelled) return
-        const favoriteItems = type === 'series' ? response.data?.series : response.data?.actors
+        const favoriteItems = type === 'series' ? response.data?.series : type === 'category' ? response.data?.categories : response.data?.actors
         setFavoriteIds(new Set((favoriteItems || []).map((item) => item._id)))
       })
       .catch(() => {
@@ -94,10 +96,10 @@ function CategoryPage({ title, tag, type = 'actors' }) {
     <div className="category-page">
       <div className="category-head">
         <h2>{title}</h2>
-        <p>Explore our curated collection of high-quality cinematic {type === 'series' ? 'series' : 'talent'}.</p>
+        <p>Explore our curated collection of high-quality cinematic {type === 'series' ? 'series' : type === 'category' ? 'categories' : 'talent'}.</p>
       </div>
       {loading ? (
-        <LoadingGrid count={12} label={`Loading ${type === 'series' ? 'series' : 'talent'}...`} />
+        <LoadingGrid count={12} label={`Loading ${type === 'series' ? 'series' : type === 'category' ? 'categories' : 'talent'}...`} />
       ) : (
         <>
           <div className="category-grid">
@@ -112,7 +114,7 @@ function CategoryPage({ title, tag, type = 'actors' }) {
               >
                 <div className="category-image-wrap">
                   <FavoriteButton
-                    type={type === 'series' ? 'series' : 'actor'}
+                    type={type === 'series' ? 'series' : type === 'category' ? 'category' : 'actor'}
                     id={item._id}
                     initialFavorite={favoriteIds.has(item._id)}
                   />

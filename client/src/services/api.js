@@ -40,6 +40,14 @@ export const getSeries = async (page = 1, limit = 10, tags = '', query = '') => 
   return response.data;
 };
 
+export const getCategories = async (page = 1, limit = 10, tags = '', query = '') => {
+  const params = { page, limit };
+  if (tags) params.tags = tags;
+  if (query) params.q = query;
+  const response = await axios.get(`${API_URL}/categories`, { params });
+  return response.data;
+};
+
 export const searchActors = async (query, limit = 8, tags = '') => {
   const params = { page: 1, limit, q: query };
   if (tags) params.tags = tags;
@@ -156,6 +164,21 @@ export const updateSeries = async (id, seriesData) => {
 
 export const deleteSeries = async (id) => {
   const response = await axios.delete(`${API_URL}/series/${id}`, getAuthHeaders());
+  return response.data;
+};
+
+export const createCategory = async (categoryData) => {
+  const response = await axios.post(`${API_URL}/categories`, categoryData, getAuthHeaders());
+  return response.data;
+};
+
+export const updateCategory = async (id, categoryData) => {
+  const response = await axios.put(`${API_URL}/categories/${id}`, categoryData, getAuthHeaders());
+  return response.data;
+};
+
+export const deleteCategory = async (id) => {
+  const response = await axios.delete(`${API_URL}/categories/${id}`, getAuthHeaders());
   return response.data;
 };
 

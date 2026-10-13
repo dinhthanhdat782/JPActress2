@@ -64,7 +64,7 @@ function HistoryPage() {
       ) : (
         <div className="history-list">
           {visibleItems.map((entry) => {
-            const item = entry.actor || entry.series
+            const item = entry.actor || entry.series || entry.category
             if (!item) return null
             return (
               <a key={entry._id} className="history-item" href={item.profileLink} target="_blank" rel="noreferrer">

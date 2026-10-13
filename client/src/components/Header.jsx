@@ -284,8 +284,7 @@ function Header({ user, onLogout }) {
           <Link to="/asian">ASIAN</Link>
           <Link to="/european">EUROPEAN</Link>
           <Link to="/series">SERIES</Link>
-          <Link to="https://missav.ws/dm223/en" target="_blank" rel="noreferrer">MISSAV</Link>
-          <Link to="https://beeg.com/" target="_blank" rel="noreferrer">BEEG</Link>
+          <Link to="/category">CATEGORY</Link>
 
           <div className="admin-menu desktop-admin-menu">
             {user ? (

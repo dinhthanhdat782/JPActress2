@@ -6,7 +6,7 @@ import FavoriteButton from '../components/FavoriteButton'
 import './FavoritesPage.css'
 
 function FavoritesPage() {
-  const [favorites, setFavorites] = useState({ actors: [], series: [] })
+  const [favorites, setFavorites] = useState({ actors: [], series: [], categories: [] })
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
@@ -14,7 +14,7 @@ function FavoritesPage() {
     let cancelled = false
     getFavorites()
       .then((response) => {
-        if (!cancelled) setFavorites(response.data || { actors: [], series: [] })
+        if (!cancelled) setFavorites(response.data || { actors: [], series: [], categories: [] })
       })
       .catch((error) => {
         if (error.response?.status === 401) navigate('/login')
@@ -61,7 +61,7 @@ function FavoritesPage() {
     <div className="favorites-page">
       <div className="category-head">
         <h2>Favorites</h2>
-        <p>Your saved actors and series.</p>
+        <p>Your saved actors, series and categories.</p>
       </div>
       <section className="favorites-section">
         <h3>Actors</h3>
@@ -77,6 +77,10 @@ function FavoritesPage() {
       <section className="favorites-section">
         <h3>Series</h3>
         {favorites.series.length ? renderItems(favorites.series, 'series') : <p className="favorites-empty">No saved series yet.</p>}
+      </section>
+      <section className="favorites-section">
+        <h3>Categories</h3>
+        {favorites.categories.length ? renderItems(favorites.categories, 'category') : <p className="favorites-empty">No saved categories yet.</p>}
       </section>
       <Link to="/" className="favorites-back">Back to home</Link>
     </div>

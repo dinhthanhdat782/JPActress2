@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage'
 import AsianPage from './pages/AsianPage'
 import EuropeanPage from './pages/EuropeanPage'
 import SeriesPage from './pages/SeriesPage'
+import CategoriesPage from './pages/CategoriesPage'
 import LoginPage from './pages/LoginPage'
 import AdminPage from './pages/AdminPage'
 import FavoritesPage from './pages/FavoritesPage'
@@ -79,6 +80,7 @@ function App() {
             <Route path="/europian" element={<EuropeanPage />} />
             <Route path="/european" element={<EuropeanPage />} />
             <Route path="/series" element={<SeriesPage />} />
+            <Route path="/category" element={<CategoriesPage />} />
             <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />

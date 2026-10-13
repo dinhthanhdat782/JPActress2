@@ -9,9 +9,14 @@ import {
   createSeries,
   updateSeries,
   deleteSeries,
+  getCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
 } from '../services/api'
 import ActorModal from '../components/ActorModal'
 import SeriesModal from '../components/SeriesModal'
+import CategoryModal from '../components/CategoryModal'
 import AnalyticsPanel from '../components/AnalyticsPanel'
 import './AdminPage.css'
 
@@ -20,6 +25,7 @@ function AdminPage({ user, onLogout }) {
 
   const [actors, setActors] = useState([])
   const [seriesList, setSeriesList] = useState([])
+  const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
 
@@ -27,6 +33,8 @@ function AdminPage({ user, onLogout }) {
   const [editingActor, setEditingActor] = useState(null)
   const [showSeriesModal, setShowSeriesModal] = useState(false)
   const [editingSeries, setEditingSeries] = useState(null)
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [editingCategory, setEditingCategory] = useState(null)
 
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -63,11 +71,17 @@ function AdminPage({ user, onLogout }) {
           const nextRows = data.data || []
           setActors((prev) => (isFirstPage ? nextRows : [...prev, ...nextRows]))
           setTotalPages(data.totalPages || 1)
-        } else {
+        } else if (activeTab === 'series') {
           const data = await getSeries(currentPage, 10, tagFilter, debouncedSearch)
           if (isCancelled) return
           const nextRows = data.data || []
           setSeriesList((prev) => (isFirstPage ? nextRows : [...prev, ...nextRows]))
+          setTotalPages(data.totalPages || 1)
+        } else {
+          const data = await getCategories(currentPage, 10, tagFilter, debouncedSearch)
+          if (isCancelled) return
+          const nextRows = data.data || []
+          setCategories((prev) => (isFirstPage ? nextRows : [...prev, ...nextRows]))
           setTotalPages(data.totalPages || 1)
         }
       } catch (error) {
@@ -76,6 +90,7 @@ function AdminPage({ user, onLogout }) {
           setLoadError(error.response?.data?.message || 'Failed to load data')
           if (activeTab === 'actors') setActors([])
           if (activeTab === 'series') setSeriesList([])
+          if (activeTab === 'categories') setCategories([])
           setTotalPages(1)
         }
       } finally {
@@ -107,6 +122,11 @@ function AdminPage({ user, onLogout }) {
     setShowSeriesModal(true)
   }
 
+  const handleCreateCategory = () => {
+    setEditingCategory(null)
+    setShowCategoryModal(true)
+  }
+
   const handleDeleteActor = async (id, name) => {
     if (window.confirm(`Are you sure you want to delete "${name}"?`)) {
       try {
@@ -131,6 +151,20 @@ function AdminPage({ user, onLogout }) {
         setCurrentPage(1)
       } catch (error) {
         alert('Error deleting series')
+      }
+    }
+  }
+
+  const handleDeleteCategory = async (id, name) => {
+    if (window.confirm(`Are you sure you want to delete category "${name}"?`)) {
+      try {
+        await deleteCategory(id)
+        const data = await getCategories(1, 10, tagFilter, debouncedSearch)
+        setCategories(data.data || [])
+        setTotalPages(data.totalPages || 1)
+        setCurrentPage(1)
+      } catch {
+        alert('Error deleting category')
       }
     }
   }
@@ -169,6 +203,20 @@ function AdminPage({ user, onLogout }) {
     }
   }
 
+  const handleSaveCategory = async (categoryData) => {
+    try {
+      if (editingCategory) await updateCategory(editingCategory._id, categoryData)
+      else await createCategory(categoryData)
+      setShowCategoryModal(false)
+      const data = await getCategories(1, 10, tagFilter, debouncedSearch)
+      setCategories(data.data || [])
+      setTotalPages(data.totalPages || 1)
+      setCurrentPage(1)
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error saving category')
+    }
+  }
+
   const handleLogout = () => {
     localStorage.removeItem('user')
     onLogout()
@@ -176,7 +224,8 @@ function AdminPage({ user, onLogout }) {
   }
 
   const isActorsTab = activeTab === 'actors'
-  const rows = isActorsTab ? actors : seriesList
+  const isSeriesTab = activeTab === 'series'
+  const rows = isActorsTab ? actors : isSeriesTab ? seriesList : categories
   const hasMore = currentPage < totalPages
 
   return (
@@ -190,8 +239,10 @@ function AdminPage({ user, onLogout }) {
         <div className="admin-actions">
           {isActorsTab ? (
             <button className="btn-add" onClick={handleCreateActor}>+ ADD ACTOR</button>
-          ) : (
+          ) : isSeriesTab ? (
             <button className="btn-add" onClick={handleCreateSeries}>+ ADD SERIES</button>
+          ) : (
+            <button className="btn-add" onClick={handleCreateCategory}>+ ADD CATEGORY</button>
           )}
           <button className="btn-logout" onClick={handleLogout}>LOGOUT</button>
         </div>
@@ -201,8 +252,11 @@ function AdminPage({ user, onLogout }) {
         <button className={`admin-tab ${isActorsTab ? 'active' : ''}`} onClick={() => setActiveTab('actors')}>
           Actors
         </button>
-        <button className={`admin-tab ${!isActorsTab ? 'active' : ''}`} onClick={() => setActiveTab('series')}>
+        <button className={`admin-tab ${isSeriesTab ? 'active' : ''}`} onClick={() => setActiveTab('series')}>
           Series
+        </button>
+        <button className={`admin-tab ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => setActiveTab('categories')}>
+          Categories
         </button>
       </div>
 
@@ -211,7 +265,7 @@ function AdminPage({ user, onLogout }) {
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder={isActorsTab ? 'Search by actress name...' : 'Search by series name...'}
+          placeholder={isActorsTab ? 'Search by actress name...' : isSeriesTab ? 'Search by series name...' : 'Search by category name...'}
         />
         <select value={tagFilter} onChange={(e) => setTagFilter(e.target.value)}>
           <option value="">All tags</option>
@@ -239,7 +293,7 @@ function AdminPage({ user, onLogout }) {
             <thead>
               <tr>
                 <th>IMAGE</th>
-                <th>{isActorsTab ? 'NAME' : 'SERIES NAME'}</th>
+                <th>{isActorsTab ? 'NAME' : isSeriesTab ? 'SERIES NAME' : 'CATEGORY NAME'}</th>
                 <th>TAGS</th>
                 <th>PROFILE LINK</th>
                 <th>ACTIONS</th>
@@ -268,9 +322,12 @@ function AdminPage({ user, onLogout }) {
                           if (isActorsTab) {
                             setEditingActor(item)
                             setShowActorModal(true)
-                          } else {
+                          } else if (isSeriesTab) {
                             setEditingSeries(item)
                             setShowSeriesModal(true)
+                          } else {
+                            setEditingCategory(item)
+                            setShowCategoryModal(true)
                           }
                         }}
                       >
@@ -281,7 +338,9 @@ function AdminPage({ user, onLogout }) {
                         onClick={() =>
                           isActorsTab
                             ? handleDeleteActor(item._id, item.name)
-                            : handleDeleteSeries(item._id, item.name)
+                            : isSeriesTab
+                              ? handleDeleteSeries(item._id, item.name)
+                              : handleDeleteCategory(item._id, item.name)
                         }
                       >
                         DELETE
@@ -293,7 +352,7 @@ function AdminPage({ user, onLogout }) {
               {rows.length === 0 && (
                 <tr>
                   <td colSpan="5" className="table-empty">
-                    No {isActorsTab ? 'actors' : 'series'} found
+                    No {isActorsTab ? 'actors' : isSeriesTab ? 'series' : 'categories'} found
                   </td>
                 </tr>
               )}
@@ -327,6 +386,13 @@ function AdminPage({ user, onLogout }) {
           series={editingSeries}
           onSave={handleSaveSeries}
           onClose={() => setShowSeriesModal(false)}
+        />
+      )}
+      {showCategoryModal && (
+        <CategoryModal
+          category={editingCategory}
+          onSave={handleSaveCategory}
+          onClose={() => setShowCategoryModal(false)}
         />
       )}
     </div>

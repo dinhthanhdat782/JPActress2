@@ -1,9 +1,11 @@
 const Actor = require('../models/Actor');
 const Series = require('../models/Series');
+const Category = require('../models/Category');
 
 const getFavoriteField = (type) => {
   if (type === 'actor') return 'favoriteActors';
   if (type === 'series') return 'favoriteSeries';
+  if (type === 'category') return 'favoriteCategories';
   return null;
 };
 
@@ -12,6 +14,7 @@ const getFavorites = async (req, res) => {
     const user = await req.user.populate([
       { path: 'favoriteActors', options: { sort: { name: 1 } } },
       { path: 'favoriteSeries', options: { sort: { name: 1 } } },
+      { path: 'favoriteCategories', options: { sort: { name: 1 } } },
     ]);
 
     res.json({
@@ -19,6 +22,7 @@ const getFavorites = async (req, res) => {
       data: {
         actors: user.favoriteActors || [],
         series: user.favoriteSeries || [],
+        categories: user.favoriteCategories || [],
       },
     });
   } catch (error) {
@@ -35,7 +39,7 @@ const toggleFavorite = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Favorite type and id are required' });
     }
 
-    const Model = type === 'actor' ? Actor : Series;
+    const Model = type === 'actor' ? Actor : type === 'series' ? Series : Category;
     const item = await Model.findById(id).select('_id');
     if (!item) {
       return res.status(404).json({ success: false, message: `${type} not found` });

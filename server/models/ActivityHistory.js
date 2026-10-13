@@ -18,6 +18,11 @@ const activityHistorySchema = new mongoose.Schema(
       ref: 'Series',
       default: null,
     },
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      default: null,
+    },
     action: {
       type: String,
       enum: ['view', 'random'],

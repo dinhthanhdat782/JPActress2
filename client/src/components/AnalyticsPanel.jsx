@@ -39,7 +39,7 @@ function AnalyticsPanel() {
       </div>
       <div className="analytics-metrics">
         {[
-          ['Actors', totals.actors], ['Series', totals.series], ['Views', totals.views],
+          ['Actors', totals.actors], ['Series', totals.series], ['Categories', totals.categories], ['Views', totals.views],
           ['Random picks', totals.randomPicks], ['Favorites', totals.favorites], ['Users', totals.users],
         ].map(([label, value]) => <div className="analytics-metric" key={label}><strong>{value || 0}</strong><span>{label}</span></div>)}
       </div>
@@ -61,7 +61,7 @@ function AnalyticsPanel() {
           )) : <p className="analytics-muted">No views recorded yet.</p>}
         </div>
       </div>
-      <div className="analytics-recent">Added in last 7 days: <strong>{totals.recentActors || 0}</strong> actors and <strong>{totals.recentSeries || 0}</strong> series</div>
+      <div className="analytics-recent">Added in last 7 days: <strong>{totals.recentActors || 0}</strong> actors, <strong>{totals.recentSeries || 0}</strong> series and <strong>{totals.recentCategories || 0}</strong> categories</div>
     </section>
   )
 }
