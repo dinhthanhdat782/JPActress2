@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getActors, getActressOfTheDay, getFavorites, getRandomActor, getRandomHistory, getSeries, recordHistory, saveRandomHistory } from '../services/api'
+import { getActors, getActressOfTheDay, getCategories, getFavorites, getRandomActor, getRandomHistory, getSeries, recordHistory, saveRandomHistory } from '../services/api'
 import { getOptimizedImageSrcSet, getOptimizedImageUrl } from '../utils/image'
 import FavoriteButton from '../components/FavoriteButton'
 import './HomePage.css'
@@ -133,12 +133,15 @@ function HomePage() {
   const [asianActors, setAsianActors] = useState([])
   const [europeanActors, setEuropeanActors] = useState([])
   const [seriesList, setSeriesList] = useState([])
+  const [categoryList, setCategoryList] = useState([])
   const [favoriteActorIds, setFavoriteActorIds] = useState(new Set())
   const [favoriteSeriesIds, setFavoriteSeriesIds] = useState(new Set())
+  const [favoriteCategoryIds, setFavoriteCategoryIds] = useState(new Set())
   const [actressOfTheDay, setActressOfTheDay] = useState(null)
   const [asianSeed, setAsianSeed] = useState(() => createSeed())
   const [euroSeed, setEuroSeed] = useState(() => createSeed())
   const [seriesSeed, setSeriesSeed] = useState(() => createSeed())
+  const [categorySeed, setCategorySeed] = useState(() => createSeed())
   const [featuredIndex, setFeaturedIndex] = useState(0)
 
   const [selectedTag, setSelectedTag] = useState(initialTag)
@@ -214,15 +217,17 @@ function HomePage() {
   useEffect(() => {
     const loadHomeData = async () => {
       try {
-        const [asianRes, euroRes, seriesRes, dailyRes] = await Promise.all([
+        const [asianRes, euroRes, seriesRes, categoryRes, dailyRes] = await Promise.all([
           getActors(1, 30, 'asian'),
           getActors(1, 30, 'european'),
           getSeries(1, 30),
+          getCategories(1, 30),
           getActressOfTheDay(),
         ])
         setAsianActors(asianRes.data || [])
         setEuropeanActors(euroRes.data || [])
         setSeriesList(seriesRes.data || [])
+        setCategoryList(categoryRes.data || [])
         setActressOfTheDay(dailyRes.data || null)
       } catch (error) {
         console.error('Error loading homepage data:', error)
@@ -235,6 +240,7 @@ function HomePage() {
     if (!getAdminToken()) {
       setFavoriteActorIds(new Set())
       setFavoriteSeriesIds(new Set())
+      setFavoriteCategoryIds(new Set())
       return undefined
     }
 
@@ -244,11 +250,13 @@ function HomePage() {
         if (cancelled) return
         setFavoriteActorIds(new Set((response.data?.actors || []).map((item) => item._id)))
         setFavoriteSeriesIds(new Set((response.data?.series || []).map((item) => item._id)))
+        setFavoriteCategoryIds(new Set((response.data?.categories || []).map((item) => item._id)))
       })
       .catch(() => {
         if (!cancelled) {
           setFavoriteActorIds(new Set())
           setFavoriteSeriesIds(new Set())
+          setFavoriteCategoryIds(new Set())
         }
       })
 
@@ -278,6 +286,7 @@ function HomePage() {
     [europeanActors, euroSeed]
   )
   const seriesVisible = useMemo(() => pickRandomSix(seriesList, seriesSeed), [seriesList, seriesSeed])
+  const categoryVisible = useMemo(() => pickRandomSix(categoryList, categorySeed), [categoryList, categorySeed])
   const featuredPool = useMemo(() => [...asianActors, ...europeanActors], [asianActors, europeanActors])
   const featuredActor = featuredPool.length ? featuredPool[featuredIndex % featuredPool.length] : null
 
@@ -480,6 +489,18 @@ function HomePage() {
         expandTo="/series"
         canPrev={seriesList.length > 6}
         canNext={seriesList.length > 6}
+      />
+
+      <SectionRow
+        title="Category"
+        actors={categoryVisible}
+        itemType="category"
+        favoriteIds={favoriteCategoryIds}
+        onPrev={() => rerandomize(setCategorySeed)}
+        onNext={() => rerandomize(setCategorySeed)}
+        expandTo="/category"
+        canPrev={categoryList.length > 6}
+        canNext={categoryList.length > 6}
       />
 
       <section className="random-wire">
