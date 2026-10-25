@@ -65,6 +65,20 @@ const loadRandomState = () => {
   }
 }
 
+const pickRandomSix = (items, seed) => {
+  if (items.length <= 6) return items
+
+  let random = Math.max(seed, 1)
+  const nextRandom = () => {
+    random = (random * 1664525 + 1013904223) % 4294967296
+    return random / 4294967296
+  }
+
+  const indices = new Set()
+  while (indices.size < 6) indices.add(Math.floor(nextRandom() * items.length))
+  return Array.from(indices, (index) => items[index])
+}
+
 function ChevronLeft() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -81,7 +95,41 @@ function ChevronRight() {
   )
 }
 
-function SectionRow({ title, actors, itemType, favoriteIds, onPrev, onNext, expandTo, canPrev, canNext }) {
+function SectionRow({ title, actors, itemType, favoriteIds, expandTo, onPrev, onNext, canPrev, canNext }) {
+  const cardsRef = useRef(null)
+  const [motionDirection, setMotionDirection] = useState(1)
+
+  useGSAP(() => {
+    const cards = cardsRef.current?.querySelectorAll('.wire-card')
+    if (!cards?.length) return
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    gsap.fromTo(cards, {
+      autoAlpha: 0.65,
+      x: motionDirection * 10,
+      y: 2,
+      scale: 0.995,
+    }, {
+      autoAlpha: 1,
+      x: 0,
+      y: 0,
+      scale: 1,
+      duration: reduceMotion ? 0.18 : 0.34,
+      stagger: reduceMotion ? 0 : 0.035,
+      ease: 'power2.out',
+      clearProps: 'transform,opacity,visibility',
+    })
+  }, { scope: cardsRef, dependencies: [actors, motionDirection], revertOnUpdate: true })
+
+  const handlePrev = () => {
+    setMotionDirection(-1)
+    onPrev()
+  }
+
+  const handleNext = () => {
+    setMotionDirection(1)
+    onNext()
+  }
+
   return (
     <section className="home-section">
       <div className="home-section-head">
@@ -91,10 +139,10 @@ function SectionRow({ title, actors, itemType, favoriteIds, onPrev, onNext, expa
         </Link>
       </div>
       <div className="home-row-shell">
-        <button className="arrow-btn" onClick={onPrev} aria-label={`Previous ${title}`} disabled={!canPrev}>
+        <button className="arrow-btn" onClick={handlePrev} aria-label={`Previous ${title}`} disabled={!canPrev}>
           <ChevronLeft />
         </button>
-        <div className="row-cards">
+        <div className="row-cards" ref={cardsRef}>
           {actors.map((actor) => (
             <a
               key={actor._id}
@@ -120,7 +168,7 @@ function SectionRow({ title, actors, itemType, favoriteIds, onPrev, onNext, expa
             </a>
           ))}
         </div>
-        <button className="arrow-btn" onClick={onNext} aria-label={`Next ${title}`} disabled={!canNext}>
+        <button className="arrow-btn" onClick={handleNext} aria-label={`Next ${title}`} disabled={!canNext}>
           <ChevronRight />
         </button>
       </div>
@@ -277,35 +325,15 @@ function HomePage() {
     return () => { cancelled = true }
   }, [])
 
-  const pickRandomSix = (actors, seed) => {
-    if (!actors.length) return []
-    if (actors.length <= 6) return actors
-
-    let random = Math.max(seed, 1)
-    const next = () => {
-      random = (random * 1664525 + 1013904223) % 4294967296
-      return random / 4294967296
-    }
-
-    const indices = new Set()
-    while (indices.size < 6) {
-      indices.add(Math.floor(next() * actors.length))
-    }
-    return Array.from(indices).map((i) => actors[i])
-  }
-
   const asianVisible = useMemo(() => pickRandomSix(asianActors, asianSeed), [asianActors, asianSeed])
-  const euroVisible = useMemo(
-    () => pickRandomSix(europeanActors, euroSeed),
-    [europeanActors, euroSeed]
-  )
+  const euroVisible = useMemo(() => pickRandomSix(europeanActors, euroSeed), [europeanActors, euroSeed])
   const seriesVisible = useMemo(() => pickRandomSix(seriesList, seriesSeed), [seriesList, seriesSeed])
   const categoryVisible = useMemo(() => pickRandomSix(categoryList, categorySeed), [categoryList, categorySeed])
   const onlyFansVisible = useMemo(() => pickRandomSix(onlyFansList, onlyFansSeed), [onlyFansList, onlyFansSeed])
+  const rerandomize = (setter) => setter(createSeed())
+
   const featuredPool = useMemo(() => [...asianActors, ...europeanActors], [asianActors, europeanActors])
   const featuredActor = featuredPool.length ? featuredPool[featuredIndex % featuredPool.length] : null
-
-  const rerandomize = (setter) => setter(createSeed())
 
   useEffect(() => {
     if (featuredPool.length < 2) return
@@ -367,7 +395,7 @@ function HomePage() {
     return () => media.revert()
   }, {
     scope: homeRef,
-    dependencies: [asianVisible, euroVisible, seriesVisible, categoryVisible, onlyFansVisible, actressOfTheDay],
+    dependencies: [asianActors, europeanActors, seriesList, categoryList, onlyFansList, actressOfTheDay],
     revertOnUpdate: true,
   })
 
