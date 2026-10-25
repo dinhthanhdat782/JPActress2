@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getActors, getFavorites, getSeries, getCategories, recordHistory } from '../services/api'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
+import { getActors, getFavorites, getSeries, getCategories, getOnlyFans, recordHistory } from '../services/api'
 import { getOptimizedImageSrcSet, getOptimizedImageUrl } from '../utils/image'
 import FavoriteButton from '../components/FavoriteButton'
 import LoadingGrid from '../components/LoadingGrid'
 import './CategoryPage.css'
+
+gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 function CategoryPage({ title, tag, type = 'actors' }) {
   const [items, setItems] = useState([])
@@ -13,11 +18,13 @@ function CategoryPage({ title, tag, type = 'actors' }) {
   const [totalPages, setTotalPages] = useState(1)
   const [favoriteIds, setFavoriteIds] = useState(new Set())
   const loadMoreRef = useRef(null)
+  const pageRef = useRef(null)
+  const animatedCountRef = useRef(0)
 
   const trackView = (id) => {
     try {
       if (JSON.parse(localStorage.getItem('user') || 'null')?.token) {
-        recordHistory(type === 'series' ? 'series' : type === 'category' ? 'category' : 'actor', id, 'view').catch(() => {})
+        recordHistory(type === 'series' ? 'series' : type === 'category' ? 'category' : type === 'onlyfans' ? 'onlyfans' : 'actor', id, 'view').catch(() => {})
       }
     } catch {
       // Ignore malformed local session data.
@@ -32,6 +39,8 @@ function CategoryPage({ title, tag, type = 'actors' }) {
           ? await getSeries(page, 24, tag)
           : type === 'category'
             ? await getCategories(page, 24, tag)
+            : type === 'onlyfans'
+              ? await getOnlyFans(page, 24, tag)
             : await getActors(page, 24, tag)
         setItems((previous) => (replace ? (data.data || []) : [...previous, ...(data.data || [])]))
         setCurrentPage(page)
@@ -45,6 +54,7 @@ function CategoryPage({ title, tag, type = 'actors' }) {
   }, [tag, type])
 
   useEffect(() => {
+    animatedCountRef.current = 0
     setItems([])
     setCurrentPage(1)
     setTotalPages(1)
@@ -82,7 +92,7 @@ function CategoryPage({ title, tag, type = 'actors' }) {
     getFavorites()
       .then((response) => {
         if (cancelled) return
-        const favoriteItems = type === 'series' ? response.data?.series : type === 'category' ? response.data?.categories : response.data?.actors
+        const favoriteItems = type === 'series' ? response.data?.series : type === 'category' ? response.data?.categories : type === 'onlyfans' ? response.data?.onlyFans : response.data?.actors
         setFavoriteIds(new Set((favoriteItems || []).map((item) => item._id)))
       })
       .catch(() => {
@@ -92,14 +102,44 @@ function CategoryPage({ title, tag, type = 'actors' }) {
     return () => { cancelled = true }
   }, [type])
 
+  useGSAP(() => {
+    if (loading) return
+
+    const cards = Array.from(pageRef.current.querySelectorAll('.category-card'))
+    const newCards = cards.slice(animatedCountRef.current)
+    animatedCountRef.current = cards.length
+    if (!newCards.length) return
+
+    const media = gsap.matchMedia()
+    media.add('(prefers-reduced-motion: no-preference)', () => {
+      gsap.fromTo(newCards, {
+        autoAlpha: 0,
+        y: 20,
+      }, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.52,
+        stagger: 0.045,
+        ease: 'power2.out',
+        clearProps: 'transform',
+        scrollTrigger: {
+          trigger: newCards[0],
+          start: 'top 90%',
+          once: true,
+        },
+      })
+    })
+    return () => media.revert()
+  }, { scope: pageRef, dependencies: [loading, items.length], revertOnUpdate: true })
+
   return (
-    <div className="category-page">
+    <div className="category-page" ref={pageRef}>
       <div className="category-head">
         <h2>{title}</h2>
-        <p>Explore our curated collection of high-quality cinematic {type === 'series' ? 'series' : type === 'category' ? 'categories' : 'talent'}.</p>
+        <p>Explore our curated collection of high-quality cinematic {type === 'series' ? 'series' : type === 'category' ? 'categories' : type === 'onlyfans' ? 'OnlyFans creators' : 'talent'}.</p>
       </div>
       {loading ? (
-        <LoadingGrid count={12} label={`Loading ${type === 'series' ? 'series' : type === 'category' ? 'categories' : 'talent'}...`} />
+        <LoadingGrid count={12} label={`Loading ${type === 'series' ? 'series' : type === 'category' ? 'categories' : type === 'onlyfans' ? 'OnlyFans creators' : 'talent'}...`} />
       ) : (
         <>
           <div className="category-grid">
@@ -114,7 +154,7 @@ function CategoryPage({ title, tag, type = 'actors' }) {
               >
                 <div className="category-image-wrap">
                   <FavoriteButton
-                    type={type === 'series' ? 'series' : type === 'category' ? 'category' : 'actor'}
+                    type={type === 'series' ? 'series' : type === 'category' ? 'category' : type === 'onlyfans' ? 'onlyfans' : 'actor'}
                     id={item._id}
                     initialFavorite={favoriteIds.has(item._id)}
                   />

@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { getMe } from './services/api'
 import Header from './components/Header'
+import PageMotion from './components/PageMotion'
 import HomePage from './pages/HomePage'
 import AsianPage from './pages/AsianPage'
 import EuropeanPage from './pages/EuropeanPage'
 import SeriesPage from './pages/SeriesPage'
 import CategoriesPage from './pages/CategoriesPage'
+import OnlyFansPage from './pages/OnlyFansPage'
 import LoginPage from './pages/LoginPage'
 import AdminPage from './pages/AdminPage'
 import FavoritesPage from './pages/FavoritesPage'
@@ -73,7 +75,7 @@ function App() {
       <ScrollToTop />
       <div className="app">
         <Header user={user} onLogout={handleLogout} />
-        <main className="main-content">
+        <PageMotion>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/asian" element={<AsianPage />} />
@@ -81,12 +83,13 @@ function App() {
             <Route path="/european" element={<EuropeanPage />} />
             <Route path="/series" element={<SeriesPage />} />
             <Route path="/category" element={<CategoriesPage />} />
+            <Route path="/onlyfans" element={<OnlyFansPage />} />
             <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/history" element={<HistoryPage />} />
             <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
             <Route path="/admin" element={<AdminPage user={user} onLogout={handleLogout} />} />
           </Routes>
-        </main>
+        </PageMotion>
         <Footer />
       </div>
     </Router>

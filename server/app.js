@@ -33,6 +33,7 @@ app.use('/api/admin/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/actors', require('./routes/actorRoutes'));
 app.use('/api/series', require('./routes/seriesRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
+app.use('/api/onlyfans', require('./routes/onlyFansRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
 
 app.get('/', (req, res) => {

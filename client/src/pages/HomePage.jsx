@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getActors, getActressOfTheDay, getCategories, getFavorites, getRandomActor, getRandomHistory, getSeries, recordHistory, saveRandomHistory } from '../services/api'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
+import { getActors, getActressOfTheDay, getCategories, getFavorites, getOnlyFans, getRandomActor, getRandomHistory, getSeries, recordHistory, saveRandomHistory } from '../services/api'
 import { getOptimizedImageSrcSet, getOptimizedImageUrl } from '../utils/image'
 import FavoriteButton from '../components/FavoriteButton'
 import './HomePage.css'
+
+gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 const RANDOM_STORAGE_KEY = 'jpactress_random_state'
 
@@ -124,6 +129,7 @@ function SectionRow({ title, actors, itemType, favoriteIds, onPrev, onNext, expa
 }
 
 function HomePage() {
+  const homeRef = useRef(null)
   const createSeed = () => Date.now() + Math.floor(Math.random() * 1000000)
   const [savedRandomState] = useState(loadRandomState)
   const savedRandomHistories = savedRandomState.histories
@@ -134,14 +140,17 @@ function HomePage() {
   const [europeanActors, setEuropeanActors] = useState([])
   const [seriesList, setSeriesList] = useState([])
   const [categoryList, setCategoryList] = useState([])
+  const [onlyFansList, setOnlyFansList] = useState([])
   const [favoriteActorIds, setFavoriteActorIds] = useState(new Set())
   const [favoriteSeriesIds, setFavoriteSeriesIds] = useState(new Set())
   const [favoriteCategoryIds, setFavoriteCategoryIds] = useState(new Set())
+  const [favoriteOnlyFansIds, setFavoriteOnlyFansIds] = useState(new Set())
   const [actressOfTheDay, setActressOfTheDay] = useState(null)
   const [asianSeed, setAsianSeed] = useState(() => createSeed())
   const [euroSeed, setEuroSeed] = useState(() => createSeed())
   const [seriesSeed, setSeriesSeed] = useState(() => createSeed())
   const [categorySeed, setCategorySeed] = useState(() => createSeed())
+  const [onlyFansSeed, setOnlyFansSeed] = useState(() => createSeed())
   const [featuredIndex, setFeaturedIndex] = useState(0)
 
   const [selectedTag, setSelectedTag] = useState(initialTag)
@@ -217,15 +226,17 @@ function HomePage() {
   useEffect(() => {
     const loadHomeData = async () => {
       try {
-        const [asianRes, euroRes, seriesRes, categoryRes, dailyRes] = await Promise.all([
+        const [asianRes, euroRes, onlyFansRes, seriesRes, categoryRes, dailyRes] = await Promise.all([
           getActors(1, 30, 'asian'),
           getActors(1, 30, 'european'),
+          getOnlyFans(1, 30),
           getSeries(1, 30),
           getCategories(1, 30),
           getActressOfTheDay(),
         ])
         setAsianActors(asianRes.data || [])
         setEuropeanActors(euroRes.data || [])
+        setOnlyFansList(onlyFansRes.data || [])
         setSeriesList(seriesRes.data || [])
         setCategoryList(categoryRes.data || [])
         setActressOfTheDay(dailyRes.data || null)
@@ -241,6 +252,7 @@ function HomePage() {
       setFavoriteActorIds(new Set())
       setFavoriteSeriesIds(new Set())
       setFavoriteCategoryIds(new Set())
+      setFavoriteOnlyFansIds(new Set())
       return undefined
     }
 
@@ -251,12 +263,14 @@ function HomePage() {
         setFavoriteActorIds(new Set((response.data?.actors || []).map((item) => item._id)))
         setFavoriteSeriesIds(new Set((response.data?.series || []).map((item) => item._id)))
         setFavoriteCategoryIds(new Set((response.data?.categories || []).map((item) => item._id)))
+        setFavoriteOnlyFansIds(new Set((response.data?.onlyFans || []).map((item) => item._id)))
       })
       .catch(() => {
         if (!cancelled) {
           setFavoriteActorIds(new Set())
           setFavoriteSeriesIds(new Set())
           setFavoriteCategoryIds(new Set())
+          setFavoriteOnlyFansIds(new Set())
         }
       })
 
@@ -287,6 +301,7 @@ function HomePage() {
   )
   const seriesVisible = useMemo(() => pickRandomSix(seriesList, seriesSeed), [seriesList, seriesSeed])
   const categoryVisible = useMemo(() => pickRandomSix(categoryList, categorySeed), [categoryList, categorySeed])
+  const onlyFansVisible = useMemo(() => pickRandomSix(onlyFansList, onlyFansSeed), [onlyFansList, onlyFansSeed])
   const featuredPool = useMemo(() => [...asianActors, ...europeanActors], [asianActors, europeanActors])
   const featuredActor = featuredPool.length ? featuredPool[featuredIndex % featuredPool.length] : null
 
@@ -303,6 +318,88 @@ function HomePage() {
 
     return () => clearInterval(intervalId)
   }, [featuredPool])
+
+  useGSAP(() => {
+    const media = gsap.matchMedia()
+    media.add('(prefers-reduced-motion: no-preference)', () => {
+      const sections = gsap.utils.toArray('.home-section', homeRef.current)
+      sections.forEach((section) => {
+        const cards = section.querySelectorAll('.wire-card')
+        if (!cards.length) return
+
+        gsap.fromTo(cards, {
+          autoAlpha: 0,
+          y: 24,
+        }, {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.58,
+          stagger: 0.07,
+          ease: 'power2.out',
+          clearProps: 'transform',
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 84%',
+            once: true,
+          },
+        })
+      })
+
+      const daily = homeRef.current.querySelector('.daily-wire')
+      if (daily) {
+        gsap.fromTo(daily.children, {
+          autoAlpha: 0,
+          y: 18,
+        }, {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.65,
+          stagger: 0.12,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: daily,
+            start: 'top 86%',
+            once: true,
+          },
+        })
+      }
+    })
+    return () => media.revert()
+  }, {
+    scope: homeRef,
+    dependencies: [asianVisible, euroVisible, seriesVisible, categoryVisible, onlyFansVisible, actressOfTheDay],
+    revertOnUpdate: true,
+  })
+
+  useGSAP(() => {
+    const media = gsap.matchMedia()
+    media.add('(prefers-reduced-motion: no-preference)', () => {
+      const hero = homeRef.current.querySelector('.hero-wire')
+      if (!hero) return
+
+      gsap.fromTo(hero.querySelector('.hero-bg'), {
+        scale: 1.08,
+        autoAlpha: 0.65,
+      }, {
+        scale: 1,
+        autoAlpha: 1,
+        duration: 1.1,
+        ease: 'power3.out',
+      })
+      gsap.fromTo(hero.querySelectorAll('.hero-copy > *'), {
+        autoAlpha: 0,
+        y: 18,
+      }, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.65,
+        stagger: 0.1,
+        delay: 0.12,
+        ease: 'power2.out',
+      })
+    })
+    return () => media.revert()
+  }, { scope: homeRef, dependencies: [featuredActor?._id], revertOnUpdate: true })
 
   const handleTagChange = (tag) => {
     const nextState = randomHistoriesRef.current[tag] || createDefaultRandomState()
@@ -374,7 +471,7 @@ function HomePage() {
   }
 
   return (
-    <div className="wire-home">
+    <div className="wire-home" ref={homeRef}>
       {featuredActor && (
         <section className="hero-wire">
           <img
@@ -477,6 +574,18 @@ function HomePage() {
         expandTo="/europian"
         canPrev={europeanActors.length > 6}
         canNext={europeanActors.length > 6}
+      />
+
+      <SectionRow
+        title="OnlyFans"
+        actors={onlyFansVisible}
+        itemType="onlyfans"
+        favoriteIds={favoriteOnlyFansIds}
+        onPrev={() => rerandomize(setOnlyFansSeed)}
+        onNext={() => rerandomize(setOnlyFansSeed)}
+        expandTo="/onlyfans"
+        canPrev={onlyFansList.length > 6}
+        canNext={onlyFansList.length > 6}
       />
 
       <SectionRow

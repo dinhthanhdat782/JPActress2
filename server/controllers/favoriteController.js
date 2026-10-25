@@ -1,11 +1,13 @@
 const Actor = require('../models/Actor');
 const Series = require('../models/Series');
 const Category = require('../models/Category');
+const OnlyFan = require('../models/OnlyFan');
 
 const getFavoriteField = (type) => {
   if (type === 'actor') return 'favoriteActors';
   if (type === 'series') return 'favoriteSeries';
   if (type === 'category') return 'favoriteCategories';
+  if (type === 'onlyfans') return 'favoriteOnlyFans';
   return null;
 };
 
@@ -15,6 +17,7 @@ const getFavorites = async (req, res) => {
       { path: 'favoriteActors', options: { sort: { name: 1 } } },
       { path: 'favoriteSeries', options: { sort: { name: 1 } } },
       { path: 'favoriteCategories', options: { sort: { name: 1 } } },
+      { path: 'favoriteOnlyFans', options: { sort: { name: 1 } } },
     ]);
 
     res.json({
@@ -23,6 +26,7 @@ const getFavorites = async (req, res) => {
         actors: user.favoriteActors || [],
         series: user.favoriteSeries || [],
         categories: user.favoriteCategories || [],
+        onlyFans: user.favoriteOnlyFans || [],
       },
     });
   } catch (error) {
@@ -39,7 +43,7 @@ const toggleFavorite = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Favorite type and id are required' });
     }
 
-    const Model = type === 'actor' ? Actor : type === 'series' ? Series : Category;
+    const Model = type === 'actor' ? Actor : type === 'series' ? Series : type === 'category' ? Category : OnlyFan;
     const item = await Model.findById(id).select('_id');
     if (!item) {
       return res.status(404).json({ success: false, message: `${type} not found` });

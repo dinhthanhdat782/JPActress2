@@ -1,6 +1,7 @@
 const Actor = require('../models/Actor');
 const Series = require('../models/Series');
 const Category = require('../models/Category');
+const OnlyFan = require('../models/OnlyFan');
 const User = require('../models/User');
 const ActivityHistory = require('../models/ActivityHistory');
 
@@ -10,20 +11,22 @@ const getAdminAnalytics = async (req, res) => {
     since.setUTCDate(since.getUTCDate() - 6);
     since.setUTCHours(0, 0, 0, 0);
 
-    const [actorCount, seriesCount, categoryCount, userCount, views, randomPicks, favoriteTotals, recentActors, recentSeries, recentCategories, dailyActivity, topActors] = await Promise.all([
+    const [actorCount, seriesCount, categoryCount, onlyFansCount, userCount, views, randomPicks, favoriteTotals, recentActors, recentSeries, recentCategories, recentOnlyFans, dailyActivity, topActors] = await Promise.all([
       Actor.countDocuments(),
       Series.countDocuments(),
       Category.countDocuments(),
+      OnlyFan.countDocuments(),
       User.countDocuments(),
       ActivityHistory.countDocuments({ action: 'view' }),
       ActivityHistory.countDocuments({ action: 'random' }),
       User.aggregate([
-        { $project: { total: { $add: [{ $size: { $ifNull: ['$favoriteActors', []] } }, { $size: { $ifNull: ['$favoriteSeries', []] } }, { $size: { $ifNull: ['$favoriteCategories', []] } }] } } },
+        { $project: { total: { $add: [{ $size: { $ifNull: ['$favoriteActors', []] } }, { $size: { $ifNull: ['$favoriteSeries', []] } }, { $size: { $ifNull: ['$favoriteCategories', []] } }, { $size: { $ifNull: ['$favoriteOnlyFans', []] } }] } } },
         { $group: { _id: null, total: { $sum: '$total' } } },
       ]),
       Actor.countDocuments({ createdAt: { $gte: since } }),
       Series.countDocuments({ createdAt: { $gte: since } }),
       Category.countDocuments({ createdAt: { $gte: since } }),
+      OnlyFan.countDocuments({ createdAt: { $gte: since } }),
       ActivityHistory.aggregate([
         { $match: { createdAt: { $gte: since } } },
         { $group: { _id: { day: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, action: '$action' }, count: { $sum: 1 } } },
@@ -47,6 +50,7 @@ const getAdminAnalytics = async (req, res) => {
           actors: actorCount,
           series: seriesCount,
           categories: categoryCount,
+          onlyFans: onlyFansCount,
           users: userCount,
           views,
           randomPicks,
@@ -54,6 +58,7 @@ const getAdminAnalytics = async (req, res) => {
           recentActors,
           recentSeries,
           recentCategories,
+          recentOnlyFans,
         },
         dailyActivity,
         topActors,

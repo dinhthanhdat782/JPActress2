@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
     }],
+    favoriteOnlyFans: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'OnlyFan',
+    }],
   },
   {
     timestamps: true,

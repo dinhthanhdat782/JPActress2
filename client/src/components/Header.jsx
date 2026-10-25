@@ -283,6 +283,7 @@ function Header({ user, onLogout }) {
           <Link to="/">HOME</Link>
           <Link to="/asian">ASIAN</Link>
           <Link to="/european">EUROPEAN</Link>
+          <Link to="/onlyfans">ONLYFANS</Link>
           <Link to="/series">SERIES</Link>
           <Link to="/category">CATEGORY</Link>
 

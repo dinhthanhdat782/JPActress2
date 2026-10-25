@@ -13,10 +13,15 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
+  getOnlyFans,
+  createOnlyFan,
+  updateOnlyFan,
+  deleteOnlyFan,
 } from '../services/api'
 import ActorModal from '../components/ActorModal'
 import SeriesModal from '../components/SeriesModal'
 import CategoryModal from '../components/CategoryModal'
+import OnlyFansModal from '../components/OnlyFansModal'
 import AnalyticsPanel from '../components/AnalyticsPanel'
 import './AdminPage.css'
 
@@ -26,6 +31,7 @@ function AdminPage({ user, onLogout }) {
   const [actors, setActors] = useState([])
   const [seriesList, setSeriesList] = useState([])
   const [categories, setCategories] = useState([])
+  const [onlyFans, setOnlyFans] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
 
@@ -35,6 +41,8 @@ function AdminPage({ user, onLogout }) {
   const [editingSeries, setEditingSeries] = useState(null)
   const [showCategoryModal, setShowCategoryModal] = useState(false)
   const [editingCategory, setEditingCategory] = useState(null)
+  const [showOnlyFansModal, setShowOnlyFansModal] = useState(false)
+  const [editingOnlyFan, setEditingOnlyFan] = useState(null)
 
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -77,11 +85,17 @@ function AdminPage({ user, onLogout }) {
           const nextRows = data.data || []
           setSeriesList((prev) => (isFirstPage ? nextRows : [...prev, ...nextRows]))
           setTotalPages(data.totalPages || 1)
-        } else {
+        } else if (activeTab === 'categories') {
           const data = await getCategories(currentPage, 10, tagFilter, debouncedSearch)
           if (isCancelled) return
           const nextRows = data.data || []
           setCategories((prev) => (isFirstPage ? nextRows : [...prev, ...nextRows]))
+          setTotalPages(data.totalPages || 1)
+        } else {
+          const data = await getOnlyFans(currentPage, 10, tagFilter, debouncedSearch)
+          if (isCancelled) return
+          const nextRows = data.data || []
+          setOnlyFans((prev) => (isFirstPage ? nextRows : [...prev, ...nextRows]))
           setTotalPages(data.totalPages || 1)
         }
       } catch (error) {
@@ -91,6 +105,7 @@ function AdminPage({ user, onLogout }) {
           if (activeTab === 'actors') setActors([])
           if (activeTab === 'series') setSeriesList([])
           if (activeTab === 'categories') setCategories([])
+          if (activeTab === 'onlyfans') setOnlyFans([])
           setTotalPages(1)
         }
       } finally {
@@ -125,6 +140,11 @@ function AdminPage({ user, onLogout }) {
   const handleCreateCategory = () => {
     setEditingCategory(null)
     setShowCategoryModal(true)
+  }
+
+  const handleCreateOnlyFan = () => {
+    setEditingOnlyFan(null)
+    setShowOnlyFansModal(true)
   }
 
   const handleDeleteActor = async (id, name) => {
@@ -165,6 +185,20 @@ function AdminPage({ user, onLogout }) {
         setCurrentPage(1)
       } catch {
         alert('Error deleting category')
+      }
+    }
+  }
+
+  const handleDeleteOnlyFan = async (id, name) => {
+    if (window.confirm(`Are you sure you want to delete OnlyFans creator "${name}"?`)) {
+      try {
+        await deleteOnlyFan(id)
+        const data = await getOnlyFans(1, 10, tagFilter, debouncedSearch)
+        setOnlyFans(data.data || [])
+        setTotalPages(data.totalPages || 1)
+        setCurrentPage(1)
+      } catch {
+        alert('Error deleting OnlyFans creator')
       }
     }
   }
@@ -217,6 +251,20 @@ function AdminPage({ user, onLogout }) {
     }
   }
 
+  const handleSaveOnlyFan = async (entry) => {
+    try {
+      if (editingOnlyFan) await updateOnlyFan(editingOnlyFan._id, entry)
+      else await createOnlyFan(entry)
+      setShowOnlyFansModal(false)
+      const data = await getOnlyFans(1, 10, tagFilter, debouncedSearch)
+      setOnlyFans(data.data || [])
+      setTotalPages(data.totalPages || 1)
+      setCurrentPage(1)
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error saving OnlyFans creator')
+    }
+  }
+
   const handleLogout = () => {
     localStorage.removeItem('user')
     onLogout()
@@ -225,7 +273,8 @@ function AdminPage({ user, onLogout }) {
 
   const isActorsTab = activeTab === 'actors'
   const isSeriesTab = activeTab === 'series'
-  const rows = isActorsTab ? actors : isSeriesTab ? seriesList : categories
+  const isCategoriesTab = activeTab === 'categories'
+  const rows = isActorsTab ? actors : isSeriesTab ? seriesList : isCategoriesTab ? categories : onlyFans
   const hasMore = currentPage < totalPages
 
   return (
@@ -241,8 +290,10 @@ function AdminPage({ user, onLogout }) {
             <button className="btn-add" onClick={handleCreateActor}>+ ADD ACTOR</button>
           ) : isSeriesTab ? (
             <button className="btn-add" onClick={handleCreateSeries}>+ ADD SERIES</button>
-          ) : (
+          ) : isCategoriesTab ? (
             <button className="btn-add" onClick={handleCreateCategory}>+ ADD CATEGORY</button>
+          ) : (
+            <button className="btn-add" onClick={handleCreateOnlyFan}>+ ADD ONLYFANS</button>
           )}
           <button className="btn-logout" onClick={handleLogout}>LOGOUT</button>
         </div>
@@ -258,6 +309,9 @@ function AdminPage({ user, onLogout }) {
         <button className={`admin-tab ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => setActiveTab('categories')}>
           Categories
         </button>
+        <button className={`admin-tab ${activeTab === 'onlyfans' ? 'active' : ''}`} onClick={() => setActiveTab('onlyfans')}>
+          OnlyFans
+        </button>
       </div>
 
       <div className="admin-filters">
@@ -265,7 +319,7 @@ function AdminPage({ user, onLogout }) {
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder={isActorsTab ? 'Search by actress name...' : isSeriesTab ? 'Search by series name...' : 'Search by category name...'}
+          placeholder={isActorsTab ? 'Search by actress name...' : isSeriesTab ? 'Search by series name...' : isCategoriesTab ? 'Search by category name...' : 'Search OnlyFans creators...'}
         />
         <select value={tagFilter} onChange={(e) => setTagFilter(e.target.value)}>
           <option value="">All tags</option>
@@ -293,7 +347,7 @@ function AdminPage({ user, onLogout }) {
             <thead>
               <tr>
                 <th>IMAGE</th>
-                <th>{isActorsTab ? 'NAME' : isSeriesTab ? 'SERIES NAME' : 'CATEGORY NAME'}</th>
+                <th>{isActorsTab ? 'NAME' : isSeriesTab ? 'SERIES NAME' : isCategoriesTab ? 'CATEGORY NAME' : 'ONLYFANS NAME'}</th>
                 <th>TAGS</th>
                 <th>PROFILE LINK</th>
                 <th>ACTIONS</th>
@@ -325,9 +379,12 @@ function AdminPage({ user, onLogout }) {
                           } else if (isSeriesTab) {
                             setEditingSeries(item)
                             setShowSeriesModal(true)
-                          } else {
+                          } else if (isCategoriesTab) {
                             setEditingCategory(item)
                             setShowCategoryModal(true)
+                          } else {
+                            setEditingOnlyFan(item)
+                            setShowOnlyFansModal(true)
                           }
                         }}
                       >
@@ -340,7 +397,9 @@ function AdminPage({ user, onLogout }) {
                             ? handleDeleteActor(item._id, item.name)
                             : isSeriesTab
                               ? handleDeleteSeries(item._id, item.name)
-                              : handleDeleteCategory(item._id, item.name)
+                              : isCategoriesTab
+                                ? handleDeleteCategory(item._id, item.name)
+                                : handleDeleteOnlyFan(item._id, item.name)
                         }
                       >
                         DELETE
@@ -352,7 +411,7 @@ function AdminPage({ user, onLogout }) {
               {rows.length === 0 && (
                 <tr>
                   <td colSpan="5" className="table-empty">
-                    No {isActorsTab ? 'actors' : isSeriesTab ? 'series' : 'categories'} found
+                    No {isActorsTab ? 'actors' : isSeriesTab ? 'series' : isCategoriesTab ? 'categories' : 'OnlyFans creators'} found
                   </td>
                 </tr>
               )}
@@ -393,6 +452,13 @@ function AdminPage({ user, onLogout }) {
           category={editingCategory}
           onSave={handleSaveCategory}
           onClose={() => setShowCategoryModal(false)}
+        />
+      )}
+      {showOnlyFansModal && (
+        <OnlyFansModal
+          entry={editingOnlyFan}
+          onSave={handleSaveOnlyFan}
+          onClose={() => setShowOnlyFansModal(false)}
         />
       )}
     </div>

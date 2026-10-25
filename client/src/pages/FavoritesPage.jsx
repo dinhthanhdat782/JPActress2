@@ -6,7 +6,7 @@ import FavoriteButton from '../components/FavoriteButton'
 import './FavoritesPage.css'
 
 function FavoritesPage() {
-  const [favorites, setFavorites] = useState({ actors: [], series: [], categories: [] })
+  const [favorites, setFavorites] = useState({ actors: [], series: [], categories: [], onlyFans: [] })
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
@@ -14,7 +14,7 @@ function FavoritesPage() {
     let cancelled = false
     getFavorites()
       .then((response) => {
-        if (!cancelled) setFavorites(response.data || { actors: [], series: [], categories: [] })
+        if (!cancelled) setFavorites(response.data || { actors: [], series: [], categories: [], onlyFans: [] })
       })
       .catch((error) => {
         if (error.response?.status === 401) navigate('/login')
@@ -81,6 +81,10 @@ function FavoritesPage() {
       <section className="favorites-section">
         <h3>Categories</h3>
         {favorites.categories.length ? renderItems(favorites.categories, 'category') : <p className="favorites-empty">No saved categories yet.</p>}
+      </section>
+      <section className="favorites-section">
+        <h3>OnlyFans</h3>
+        {favorites.onlyFans.length ? renderItems(favorites.onlyFans, 'onlyfans') : <p className="favorites-empty">No saved OnlyFans creators yet.</p>}
       </section>
       <Link to="/" className="favorites-back">Back to home</Link>
     </div>
